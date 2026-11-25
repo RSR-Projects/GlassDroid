@@ -2,32 +2,31 @@ package org.fdroid.ui.details
 
 import android.content.res.Configuration
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight.Companion.Bold
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.os.LocaleListCompat
@@ -36,6 +35,11 @@ import org.fdroid.R
 import org.fdroid.database.Repository
 import org.fdroid.index.IndexFormatVersion.TWO
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassDropdownMenu
+import org.fdroid.ui.glass.LiquidGlassDropdownMenuItem
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.fastLiquidSurface
+import org.fdroid.ui.glass.liquidRowSquish
 import org.fdroid.ui.repositories.RepoIcon
 import org.fdroid.ui.utils.FDroidOutlineButton
 
@@ -60,57 +64,57 @@ fun RepoChooser(
     Box {
       val borderColor =
         if (isPreferred) {
-          MaterialTheme.colorScheme.primary
+          MaterialTheme.colorScheme.primary.copy(alpha = 0.65f)
         } else {
-          MaterialTheme.colorScheme.outline
+          null
         }
-      OutlinedTextField(
-        value =
-          TextFieldValue(
-            annotatedString =
-              getRepoString(repo = currentRepo, isPreferred = repos.size > 1 && isPreferred)
-          ),
-        textStyle = MaterialTheme.typography.bodyMedium,
-        onValueChange = {},
-        label = {
-          if (repos.size == 1) {
-            Text(stringResource(R.string.app_details_repository))
-          } else {
-            Text(stringResource(R.string.app_details_repositories))
-          }
-        },
-        leadingIcon = {
-          RepoIcon(repo = currentRepo, proxy = proxy, modifier = Modifier.size(24.dp))
-        },
-        trailingIcon = {
-          if (repos.size > 1)
-            Icon(
-              imageVector = Icons.Default.ArrowDropDown,
-              contentDescription = stringResource(R.string.app_details_repository_expand),
-              tint =
-                if (isPreferred) {
-                  MaterialTheme.colorScheme.primary
-                } else {
-                  MaterialTheme.colorScheme.onSurface
-                },
-            )
-        },
-        singleLine = false,
-        enabled = false,
-        colors =
-          OutlinedTextFieldDefaults.colors(
-            // hack to enable clickable and look like enabled
-            disabledTextColor = MaterialTheme.colorScheme.onSurface,
-            disabledBorderColor = borderColor,
-            disabledLeadingIconColor = MaterialTheme.colorScheme.onSurface,
-            disabledLabelColor = borderColor,
-          ),
+      Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
         modifier =
-          Modifier.fillMaxWidth().let {
-            if (repos.size > 1) it.clickable(onClick = { expanded = true }) else it
-          },
-      )
-      DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+          Modifier.fillMaxWidth()
+            .let {
+              if (repos.size > 1) it.liquidRowSquish() else it
+            }
+            .clip(LiquidGlassShapes.SmallCardShape)
+            .fastLiquidSurface(
+              shape = LiquidGlassShapes.SmallCardShape,
+              borderColor = borderColor,
+              withShadow = false,
+            )
+            .let {
+              if (repos.size > 1) it.clickable(onClick = { expanded = true }) else it
+            }
+            .padding(horizontal = 14.dp, vertical = 12.dp),
+      ) {
+        RepoIcon(repo = currentRepo, proxy = proxy, modifier = Modifier.size(24.dp))
+        Column(modifier = Modifier.weight(1f)) {
+          Text(
+            text =
+              if (repos.size == 1) stringResource(R.string.app_details_repository)
+              else stringResource(R.string.app_details_repositories),
+            style = MaterialTheme.typography.labelSmall,
+            color =
+              if (isPreferred) MaterialTheme.colorScheme.primary
+              else MaterialTheme.colorScheme.onSurfaceVariant,
+          )
+          Text(
+            text = getRepoString(repo = currentRepo, isPreferred = repos.size > 1 && isPreferred),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface,
+          )
+        }
+        if (repos.size > 1) {
+          Icon(
+            imageVector = Icons.Default.ArrowDropDown,
+            contentDescription = stringResource(R.string.app_details_repository_expand),
+            tint =
+              if (isPreferred) MaterialTheme.colorScheme.primary
+              else MaterialTheme.colorScheme.onSurface,
+          )
+        }
+      }
+      LiquidGlassDropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
         repos.iterator().forEach { repo ->
           RepoMenuItem(
             repo = repo,
@@ -143,7 +147,7 @@ private fun RepoMenuItem(
   modifier: Modifier = Modifier,
   onClick: () -> Unit,
 ) {
-  DropdownMenuItem(
+  LiquidGlassDropdownMenuItem(
     text = {
       Text(text = getRepoString(repo, isPreferred), style = MaterialTheme.typography.bodyMedium)
     },

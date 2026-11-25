@@ -22,18 +22,9 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material.icons.filled.SortByAlpha
 import androidx.compose.material.icons.filled.WarningAmber
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonGroupDefaults
-import androidx.compose.material3.ButtonGroupDefaults.ConnectedSpaceBetween
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.ToggleButton
-import androidx.compose.material3.ToggleButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,7 +41,11 @@ import org.fdroid.database.AppListSortOrder
 import org.fdroid.ui.FDroidContent
 import org.fdroid.ui.categories.CategoryChip
 import org.fdroid.ui.categories.ChipFlowRow
-import org.fdroid.ui.categories.chipHeight
+import org.fdroid.ui.glass.LiquidGlassChip
+import org.fdroid.ui.glass.LiquidGlassDivider
+import org.fdroid.ui.glass.LiquidGlassSwitch
+import org.fdroid.ui.glass.LiquidGlassTextButton
+import org.fdroid.ui.glass.liquidRowSquish
 import org.fdroid.ui.icons.PackageVariant
 import org.fdroid.ui.utils.AsyncShimmerImage
 import org.fdroid.ui.utils.ExpandableSection
@@ -85,70 +80,52 @@ fun AppsFilter(info: AppListInfo, modifier: Modifier = Modifier) {
       style = MaterialTheme.typography.bodyMedium,
       modifier = Modifier.padding(horizontal = 16.dp),
     )
-    FlowRow(
-      horizontalArrangement = spacedBy(ConnectedSpaceBetween),
-      verticalArrangement = spacedBy(2.dp),
+    Row(
+      horizontalArrangement = spacedBy(10.dp),
       modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp).fillMaxWidth(),
     ) {
       val byNameSelected = info.model.sortBy == AppListSortOrder.NAME
-      ToggleButton(
-        checked = byNameSelected,
-        onCheckedChange = { if (it) info.actions.sortBy(AppListSortOrder.NAME) },
-        shapes = ButtonGroupDefaults.connectedLeadingButtonShapes(),
-        colors =
-          ToggleButtonDefaults.colors()
-            .copy(
-              checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-              checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
+      LiquidGlassChip(
+        selected = byNameSelected,
+        onClick = { info.actions.sortBy(AppListSortOrder.NAME) },
+        leadingIcon = { Icon(Icons.Default.SortByAlpha, null, modifier = Modifier.size(18.dp)) },
+        label = { Text(stringResource(R.string.sort_by_name_short)) },
         modifier = Modifier.weight(0.5f).semantics { role = Role.RadioButton },
-      ) {
-        Icon(Icons.Default.SortByAlpha, null)
-        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-        Text(stringResource(R.string.sort_by_name_short))
-      }
+      )
       val byLatestSelected = info.model.sortBy == AppListSortOrder.LAST_UPDATED
-      ToggleButton(
-        checked = byLatestSelected,
-        onCheckedChange = { if (it) info.actions.sortBy(AppListSortOrder.LAST_UPDATED) },
-        shapes = ButtonGroupDefaults.connectedTrailingButtonShapes(),
-        colors =
-          ToggleButtonDefaults.colors()
-            .copy(
-              checkedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
-              checkedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-            ),
+      LiquidGlassChip(
+        selected = byLatestSelected,
+        onClick = { info.actions.sortBy(AppListSortOrder.LAST_UPDATED) },
+        leadingIcon = { Icon(Icons.Default.AccessTime, null, modifier = Modifier.size(18.dp)) },
+        label = { Text(stringResource(R.string.sort_by_latest_short)) },
         modifier = Modifier.weight(0.5f).semantics { role = Role.RadioButton },
-      ) {
-        Icon(Icons.Default.AccessTime, null)
-        Spacer(Modifier.size(ToggleButtonDefaults.IconSpacing))
-        Text(stringResource(R.string.sort_by_latest_short))
-      }
+      )
     }
     Row(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = spacedBy(16.dp),
       modifier =
-        Modifier.padding(horizontal = 16.dp).fillMaxWidth().clickable {
-          info.actions.toggleFilterIncompatible()
-        },
+        Modifier.padding(horizontal = 16.dp)
+          .fillMaxWidth()
+          .liquidRowSquish()
+          .clickable { info.actions.toggleFilterIncompatible() },
     ) {
       Text(
         stringResource(R.string.filter_only_compatible),
         style = MaterialTheme.typography.bodyMedium,
         modifier = Modifier.weight(1f),
       )
-      Switch(
+      LiquidGlassSwitch(
         checked = !info.model.filterIncompatible,
         onCheckedChange = { info.actions.toggleFilterIncompatible() },
       )
     }
-    TextButton(
+    LiquidGlassTextButton(
       onClick = info.actions::saveFilters,
       modifier = modifier.align(Alignment.End).padding(horizontal = 16.dp),
     ) {
-      Icon(Icons.Default.Save, null)
-      Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+      Icon(Icons.Default.Save, null, modifier = Modifier.size(18.dp))
+      Spacer(Modifier.width(8.dp))
       Text(text = stringResource(R.string.filter_button_save))
     }
     // Filter apps by section
@@ -156,7 +133,7 @@ fun AppsFilter(info: AppListInfo, modifier: Modifier = Modifier) {
     val repositories = info.model.repositories
     val antiFeatures = info.model.antiFeatures
     if (!categories.isNullOrEmpty() || repositories.isNotEmpty() || !antiFeatures.isNullOrEmpty()) {
-      HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+      LiquidGlassDivider(modifier = Modifier.padding(vertical = 8.dp))
       Text(
         text = stringResource(R.string.filter_intro),
         style = MaterialTheme.typography.titleMedium,
@@ -224,9 +201,8 @@ fun AppsFilter(info: AppListInfo, modifier: Modifier = Modifier) {
           ChipFlowRow(modifier = modifier.fillMaxWidth()) {
             repositories.forEach { repo ->
               val selected = repo.repoId in info.model.filteredRepositoryIds
-              FilterChip(
+              LiquidGlassChip(
                 selected = selected,
-                modifier = Modifier.height(chipHeight),
                 leadingIcon = {
                   if (selected) {
                     Icon(
@@ -237,7 +213,7 @@ fun AppsFilter(info: AppListInfo, modifier: Modifier = Modifier) {
                     AsyncShimmerImage(
                       model = repo.icon,
                       contentDescription = null,
-                      modifier = Modifier.size(24.dp).semantics { hideFromAccessibility() },
+                      modifier = Modifier.size(18.dp).semantics { hideFromAccessibility() },
                     )
                 },
                 label = { Text(repo.name) },
@@ -288,13 +264,13 @@ fun AppsFilter(info: AppListInfo, modifier: Modifier = Modifier) {
           }
         }
       // clear all filters
-      HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-      TextButton(
+      LiquidGlassDivider(modifier = Modifier.padding(vertical = 8.dp))
+      LiquidGlassTextButton(
         onClick = info.actions::clearFilters,
         modifier = modifier.align(Alignment.End).padding(horizontal = 16.dp),
       ) {
-        Icon(Icons.Default.Clear, null)
-        Spacer(Modifier.width(ButtonDefaults.IconSpacing))
+        Icon(Icons.Default.Clear, null, modifier = Modifier.size(18.dp))
+        Spacer(Modifier.width(8.dp))
         Text(stringResource(R.string.filter_button_clear_all))
       }
     }

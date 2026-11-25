@@ -104,6 +104,28 @@ object SettingsConstants {
 
   const val PREF_KEY_LAST_DB_REPAIR_CHECK = "lastDbRepairCheck"
   const val PREF_DEFAULT_LAST_DB_REPAIR_CHECK = -1L
+
+  const val PREF_KEY_GLASS_PROFILE = "liquidGlassProfile"
+  const val PREF_KEY_GLASS_TINT_COLOR = "liquidGlassTintColor"
+  const val PREF_KEY_GLASS_BLUR = "liquidGlassBlur"
+  const val PREF_KEY_GLASS_TRANSPARENCY = "liquidGlassTransparency"
+  const val PREF_KEY_GLASS_REFRACTION_HEIGHT = "liquidGlassRefractionHeight"
+  const val PREF_KEY_GLASS_REFRACTION_AMOUNT = "liquidGlassRefractionAmount"
+  const val PREF_KEY_GLASS_TINT = "liquidGlassTint"
+  const val PREF_KEY_GLASS_HIGHLIGHT = "liquidGlassHighlight"
+  const val PREF_KEY_GLASS_VIBRANCY = "liquidGlassVibrancy"
+  const val PREF_KEY_GLASS_BRIGHTNESS = "liquidGlassBrightness"
+  const val PREF_KEY_GLASS_CHROMATIC = "liquidGlassChromatic"
+  const val PREF_KEY_GLASS_REDUCED_FX = "liquidGlassReducedFx"
+  const val PREF_KEY_MOTION_PROFILE = "liquidMotionProfile"
+  const val PREF_KEY_MOTION_ENABLED = "liquidMotionEnabled"
+  const val PREF_KEY_MOTION_INTENSITY = "liquidMotionIntensity"
+  const val PREF_KEY_MOTION_BOUNCE = "liquidMotionBounce"
+  const val PREF_KEY_MOTION_SPEED = "liquidMotionSpeed"
+  const val PREF_KEY_MOTION_PRESS_DEPTH = "liquidMotionPressDepth"
+  const val PREF_KEY_MOTION_RELEASE_JIGGLE = "liquidMotionReleaseJiggle"
+  const val PREF_KEY_MOTION_DRAG_STRETCH = "liquidMotionDragStretch"
+  const val PREF_KEY_MOTION_LONG_PRESS_BLOOM = "liquidMotionLongPressBloom"
 }
 
 fun String?.toRepoUpdateValue() =

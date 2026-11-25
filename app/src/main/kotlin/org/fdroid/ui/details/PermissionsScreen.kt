@@ -15,47 +15,30 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PermDeviceInformation
-import androidx.compose.material3.Badge
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenu
-import androidx.compose.material3.ExposedDropdownMenuAnchorType.Companion.PrimaryNotEditable
-import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.ModalBottomSheetProperties
-import androidx.compose.material3.OutlinedTextFieldDefaults
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SheetValue.Expanded
-import androidx.compose.material3.SheetValue.Hidden
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
 import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.rememberBottomSheetState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
@@ -70,6 +53,19 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.fdroid.R
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidFloatingTopBar
+import org.fdroid.ui.glass.LiquidGlassBadge
+import org.fdroid.ui.glass.LiquidGlassBottomSheet
+import org.fdroid.ui.glass.LiquidGlassCard
+import org.fdroid.ui.glass.LiquidGlassDropdownMenu
+import org.fdroid.ui.glass.LiquidGlassDropdownMenuItem
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidGlassTextButton
+import org.fdroid.ui.glass.LiquidScaffold
+import org.fdroid.ui.glass.fastLiquidSurface
+import org.fdroid.ui.glass.liquidRowSquish
+import org.fdroid.ui.glass.springListItem
+import org.fdroid.ui.utils.BackButton
 import org.fdroid.ui.utils.ExpandableSection
 import org.fdroid.ui.utils.testApp
 
@@ -114,7 +110,10 @@ fun PermissionsSection(
           modifier = Modifier.padding(top = 8.dp).padding(horizontal = 16.dp),
         )
       }
-      TextButton(onClick = { showScreen = true }, modifier = Modifier.padding(horizontal = 4.dp)) {
+      LiquidGlassTextButton(
+        onClick = { showScreen = true },
+        modifier = Modifier.padding(horizontal = 4.dp),
+      ) {
         Text(
           text =
             stringResource(
@@ -122,7 +121,7 @@ fun PermissionsSection(
               version.permissions.size,
             )
         )
-        Spacer(modifier = Modifier.width(ButtonDefaults.IconSpacing))
+        Spacer(modifier = Modifier.width(8.dp))
         Icon(imageVector = Icons.AutoMirrored.Default.ArrowForward, contentDescription = null)
       }
     }
@@ -137,34 +136,18 @@ fun PermissionsSection(
 private fun PermissionsSheet(
   version: VersionItem,
   versions: List<VersionItem>,
-  initiallyHidden: Boolean = !LocalInspectionMode.current,
+  @Suppress("UNUSED_PARAMETER") initiallyHidden: Boolean = !LocalInspectionMode.current,
   onDismiss: () -> Unit,
 ) {
-  val sheetState =
-    rememberBottomSheetState(
-      initialValue = if (initiallyHidden) Hidden else Expanded,
-      enabledValues = setOf(Hidden, Expanded),
-    )
-  ModalBottomSheet(
+  LiquidGlassBottomSheet(
     onDismissRequest = onDismiss,
-    sheetState = sheetState,
-    dragHandle = {},
-    contentWindowInsets = { WindowInsets() },
-    properties = ModalBottomSheetProperties(),
+    showDragHandle = false,
   ) {
     var currentVersion by remember { mutableStateOf(version) }
-    val scrollBehavior = enterAlwaysScrollBehavior(rememberTopAppBarState())
-    Scaffold(
+    LiquidScaffold(
       topBar = {
-        TopAppBar(
-          navigationIcon = {
-            IconButton(onClick = onDismiss) {
-              Icon(
-                imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                contentDescription = stringResource(R.string.back),
-              )
-            }
-          },
+        LiquidFloatingTopBar(
+          navigationIcon = { BackButton(onClick = onDismiss) },
           title = {
             Text(
               stringResource(
@@ -175,39 +158,39 @@ private fun PermissionsSheet(
               overflow = TextOverflow.Ellipsis,
             )
           },
+          showActions = true,
           actions = {
             VersionDropDown(
               currentVersion,
               versions,
               onVersionChanged = { currentVersion = it },
-              modifier = Modifier.padding(end = 16.dp),
+              modifier = Modifier.padding(horizontal = 8.dp),
             )
           },
-          scrollBehavior = scrollBehavior,
         )
       },
-      modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
     ) { paddingValues ->
       LazyColumn(contentPadding = paddingValues) {
         item(contentType = "dropdown") {}
         item(contentType = "warning") {
-          ElevatedCard(
-            colors =
-              CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer
-              ),
+          LiquidGlassCard(
+            containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.88f),
             modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp, horizontal = 16.dp),
           ) {
-            Row(
-              horizontalArrangement = spacedBy(16.dp),
-              verticalAlignment = CenterVertically,
-              modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            CompositionLocalProvider(
+              LocalContentColor provides MaterialTheme.colorScheme.onErrorContainer
             ) {
-              Icon(Icons.Default.Info, null)
-              Text(
-                stringResource(R.string.app_details_permissions_warning),
-                style = MaterialTheme.typography.bodyLarge,
-              )
+              Row(
+                horizontalArrangement = spacedBy(16.dp),
+                verticalAlignment = CenterVertically,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+              ) {
+                Icon(Icons.Default.Info, null)
+                Text(
+                  stringResource(R.string.app_details_permissions_warning),
+                  style = MaterialTheme.typography.bodyLarge,
+                )
+              }
             }
           }
         }
@@ -215,7 +198,7 @@ private fun PermissionsSheet(
           val permissions = currentVersion.permissionsByType[type].orEmpty()
           if (permissions.isNotEmpty() || type == PermissionType.SENSITIVE) {
             item(contentType = "type_header") {
-              ListItem {
+              ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent)) {
                 Text(
                   text = stringResource(type.titleRes, permissions.size),
                   style = MaterialTheme.typography.titleMedium,
@@ -225,7 +208,7 @@ private fun PermissionsSheet(
             }
             if (permissions.isEmpty()) {
               item(contentType = "type_empty") {
-                ListItem {
+                ListItem(colors = ListItemDefaults.colors(containerColor = Color.Transparent)) {
                   Text(text = stringResource(R.string.app_details_permissions_sensitive_none))
                 }
               }
@@ -234,7 +217,7 @@ private fun PermissionsSheet(
                 items = permissions,
                 contentType = { "permission" },
               ) { permission ->
-                PermissionsRow(permission)
+                PermissionsRow(permission, modifier = Modifier.springListItem(this))
               }
             }
           }
@@ -252,21 +235,14 @@ private fun VersionDropDown(
   modifier: Modifier = Modifier,
 ) {
   var expanded by remember { mutableStateOf(false) }
-  ExposedDropdownMenuBox(
-    expanded = expanded,
-    onExpandedChange = { expanded = it },
-    modifier = modifier.minimumInteractiveComponentSize(),
-  ) {
+  Box(modifier = modifier.minimumInteractiveComponentSize()) {
     Row(
       modifier =
-        Modifier.menuAnchor(PrimaryNotEditable)
+        Modifier.liquidRowSquish()
+          .clip(LiquidGlassShapes.SmallCardShape)
+          .fastLiquidSurface(shape = LiquidGlassShapes.SmallCardShape, withShadow = false)
           .clickable { expanded = true }
-          .border(
-            width = 1.dp,
-            color = OutlinedTextFieldDefaults.colors().unfocusedIndicatorColor,
-            shape = OutlinedTextFieldDefaults.shape,
-          )
-          .padding(4.dp),
+          .padding(horizontal = 8.dp, vertical = 6.dp),
       verticalAlignment = CenterVertically,
     ) {
       Text(
@@ -274,7 +250,7 @@ private fun VersionDropDown(
         overflow = TextOverflow.MiddleEllipsis,
         style = MaterialTheme.typography.labelMedium,
         maxLines = 1,
-        modifier = Modifier.padding(start = 6.dp),
+        modifier = Modifier.padding(start = 4.dp),
       )
       Icon(
         imageVector = Icons.Default.ArrowDropDown,
@@ -282,12 +258,12 @@ private fun VersionDropDown(
         modifier = Modifier.padding(start = 2.dp),
       )
     }
-    ExposedDropdownMenu(
+    LiquidGlassDropdownMenu(
       expanded = expanded,
       onDismissRequest = { expanded = false },
     ) {
       versions.forEach { versionItem ->
-        DropdownMenuItem(
+        LiquidGlassDropdownMenuItem(
           text = {
             Text(
               versionItem.version.versionName,
@@ -305,8 +281,10 @@ private fun VersionDropDown(
 }
 
 @Composable
-private fun PermissionsRow(permission: Permission) {
+private fun PermissionsRow(permission: Permission, modifier: Modifier = Modifier) {
   ListItem(
+    modifier = modifier,
+    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
     supportingContent = {
       Column(verticalArrangement = spacedBy(4.dp)) {
         if (permission.description?.isNotBlank() == true) {
@@ -319,7 +297,10 @@ private fun PermissionsRow(permission: Permission) {
               ),
           )
         }
-        Badge(containerColor = MaterialTheme.colorScheme.surfaceContainer) {
+        LiquidGlassBadge(
+          containerColor = MaterialTheme.colorScheme.surfaceContainer,
+          contentColor = MaterialTheme.colorScheme.onSurface,
+        ) {
           Text(
             text = permission.name.substringAfter("android.permission."),
             fontFamily = FontFamily.Monospace,
@@ -327,7 +308,7 @@ private fun PermissionsRow(permission: Permission) {
           )
         }
       }
-    }
+    },
   ) {
     val text =
       if (permission.label != null && permission.label != permission.name) {

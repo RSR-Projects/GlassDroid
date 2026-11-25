@@ -4,13 +4,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -23,6 +23,12 @@ import org.fdroid.database.AppIssue
 import org.fdroid.database.NoCompatibleSigner
 import org.fdroid.database.UpdateInOtherRepo
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassBadgedBox
+import org.fdroid.ui.glass.LiquidGlassDefaults
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.appHeroSharedBounds
+import org.fdroid.ui.glass.appHeroSharedElement
+import org.fdroid.ui.glass.iconPopEntrance
 import org.fdroid.ui.utils.AsyncShimmerImage
 import org.fdroid.ui.utils.BadgeIcon
 import org.fdroid.ui.utils.Names
@@ -34,9 +40,10 @@ fun InstalledAppRow(
   modifier: Modifier = Modifier,
   appIssue: AppIssue? = null,
 ) {
+  val selectedColor = LiquidGlassDefaults.palette().selectedPillTint
   ListItem(
     leadingContent = {
-      BadgedBox(
+      LiquidGlassBadgedBox(
         badge = {
           if (appIssue != null)
             BadgeIcon(
@@ -55,22 +62,31 @@ fun InstalledAppRow(
           model = app.iconModel,
           error = painterResource(R.drawable.ic_repo_app_default),
           contentDescription = null,
-          modifier = Modifier.size(48.dp).semantics { hideFromAccessibility() },
+          modifier =
+            Modifier.size(48.dp)
+              .iconPopEntrance(key = app.packageName)
+              .appHeroSharedElement("app_icon_${app.packageName}")
+              .clip(MaterialTheme.shapes.medium)
+              .semantics { hideFromAccessibility() },
         )
       }
     },
-    headlineContent = { Text(app.name) },
+    headlineContent = {
+      Text(
+        text = app.name,
+        modifier = Modifier.appHeroSharedElement("app_title_${app.packageName}"),
+      )
+    },
     supportingContent = { Text(app.installedVersionName) },
     colors =
       ListItemDefaults.colors(
-        containerColor =
-          if (isSelected) {
-            MaterialTheme.colorScheme.surfaceVariant
-          } else {
-            Color.Transparent
-          }
+        containerColor = if (isSelected) selectedColor else Color.Transparent
       ),
-    modifier = modifier,
+    modifier =
+      modifier.appHeroSharedBounds(
+        key = "app_card_${app.packageName}",
+        clipShape = LiquidGlassShapes.SmallCardShape,
+      ),
   )
 }
 

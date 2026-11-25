@@ -11,13 +11,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WarningAmber
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
@@ -31,6 +31,7 @@ import io.ktor.client.engine.ProxyConfig
 import org.fdroid.R
 import org.fdroid.database.Repository
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassCard
 import org.fdroid.ui.repositories.RepoIcon
 import org.fdroid.ui.utils.FDroidOutlineButton
 import org.fdroid.ui.utils.addressForUi
@@ -84,24 +85,26 @@ fun RepoDetailsHeader(
       }
     }
     if (repo.lastError != null)
-      ElevatedCard(
-        colors =
-          CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
-          ),
+      LiquidGlassCard(
+        containerColor = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.88f),
         modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
       ) {
-        Row(
-          horizontalArrangement = spacedBy(16.dp),
-          verticalAlignment = CenterVertically,
-          modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+        CompositionLocalProvider(
+          LocalContentColor provides MaterialTheme.colorScheme.onErrorContainer
         ) {
-          Icon(Icons.Default.WarningAmber, null)
-          SelectionContainer {
-            Text(
-              text = stringResource(R.string.repo_has_update_error_intro) + "\n\n${repo.lastError}",
-              style = MaterialTheme.typography.bodyLarge,
-            )
+          Row(
+            horizontalArrangement = spacedBy(16.dp),
+            verticalAlignment = CenterVertically,
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp),
+          ) {
+            Icon(Icons.Default.WarningAmber, null)
+            SelectionContainer {
+              Text(
+                text =
+                  stringResource(R.string.repo_has_update_error_intro) + "\n\n${repo.lastError}",
+                style = MaterialTheme.typography.bodyLarge,
+              )
+            }
           }
         }
       }

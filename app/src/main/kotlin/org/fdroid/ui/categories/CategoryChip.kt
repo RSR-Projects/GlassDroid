@@ -2,12 +2,10 @@ package org.fdroid.ui.categories
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -21,6 +19,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.fdroid.R
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassChip
 
 @Composable
 fun CategoryChip(
@@ -29,8 +28,9 @@ fun CategoryChip(
   modifier: Modifier = Modifier,
   selected: Boolean = false,
 ) {
-  FilterChip(
+  LiquidGlassChip(
     onClick = onSelected,
+    selected = selected,
     leadingIcon = {
       if (selected)
         Icon(
@@ -46,8 +46,7 @@ fun CategoryChip(
         )
     },
     label = { Text(categoryItem.name, maxLines = 2, overflow = TextOverflow.Ellipsis) },
-    selected = selected,
-    modifier = modifier.height(chipHeight),
+    modifier = modifier.heightIn(min = chipHeight),
   )
 }
 
@@ -57,8 +56,9 @@ fun CategoryChip(
   onClick: () -> Unit,
   modifier: Modifier = Modifier,
 ) {
-  AssistChip(
+  LiquidGlassChip(
     onClick = onClick,
+    selected = false,
     leadingIcon = {
       Icon(
         imageVector = categoryItem.imageVector,
@@ -68,7 +68,7 @@ fun CategoryChip(
       )
     },
     label = { Text(text = categoryItem.name, maxLines = 2, overflow = TextOverflow.Ellipsis) },
-    modifier = modifier.height(chipHeight),
+    modifier = modifier.heightIn(min = chipHeight),
   )
 }
 

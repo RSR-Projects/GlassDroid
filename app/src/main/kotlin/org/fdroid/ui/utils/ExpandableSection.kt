@@ -7,8 +7,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -19,6 +19,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -27,6 +28,10 @@ import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import org.fdroid.ui.glass.LiquidGlassIconButton
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidSprings
+import org.fdroid.ui.glass.liquidRowSquish
 
 @Composable
 fun ExpandableSection(
@@ -44,7 +49,11 @@ fun ExpandableSection(
       verticalAlignment = Alignment.CenterVertically,
       horizontalArrangement = spacedBy(8.dp),
       modifier =
-        Modifier.heightIn(min = 48.dp).clickable(onClick = { sectionExpanded = !sectionExpanded }),
+        Modifier.heightIn(min = 48.dp)
+          .liquidRowSquish()
+          .clip(LiquidGlassShapes.SmallCardShape)
+          .clickable(onClick = { sectionExpanded = !sectionExpanded })
+          .padding(horizontal = 4.dp),
     ) {
       if (icon != null)
         Icon(
@@ -58,18 +67,24 @@ fun ExpandableSection(
         style = MaterialTheme.typography.titleMedium,
         modifier = Modifier.weight(1f),
       )
-      IconButton(onClick = { sectionExpanded = !sectionExpanded }) {
+      LiquidGlassIconButton(onClick = { sectionExpanded = !sectionExpanded }) {
         ExpandIconArrow(sectionExpanded)
       }
     }
     AnimatedVisibility(
       visible = sectionExpanded,
+      enter = LiquidSprings.expandEnter(),
+      exit = LiquidSprings.expandExit(),
       modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
     ) {
       content()
     }
   }
-  AnimatedVisibility(visible = !sectionExpanded && collapsedSummary != null) {
+  AnimatedVisibility(
+    visible = !sectionExpanded && collapsedSummary != null,
+    enter = LiquidSprings.expandEnter(),
+    exit = LiquidSprings.expandExit(),
+  ) {
     collapsedSummary?.invoke()
   }
 }

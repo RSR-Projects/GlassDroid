@@ -1,7 +1,6 @@
 plugins {
   alias(libs.plugins.jetbrains.kotlin.multiplatform)
   alias(libs.plugins.android.multiplatform.library)
-  alias(libs.plugins.ktfmt)
 }
 
 kotlin {
@@ -25,5 +24,3 @@ kotlin {
     }
   }
 }
-
-ktfmt { googleStyle() }

@@ -3,7 +3,7 @@
 
     <!-- The Android strings follow the Material Design writing style: https://m3.material.io/foundations/content-design and https://m1.material.io/style/writing.html The guidelines are only available in English, but they are intended to apply to all languages. -->
     <string name="app_name_full">F-Droid</string>
-    <string name="app_name_basic">F-Droid Basic</string>
+    <string name="app_name_basic">GlassDroid Basic</string>
     <!-- The app name of nightly builds, shortened to fit reduced space for app names -->
     <string name="app_name_full_nightly">F-Nightly</string>
     <!-- The app name of nightly builds, shortened to fit reduced space for app names -->
@@ -203,7 +203,7 @@
     <string name="app_details_permissions_title_custom">Custom (%d)</string>
 
     <string name="about_title_full">About F-Droid</string>
-    <string name="about_title_basic">About F-Droid Basic</string>
+    <string name="about_title_basic">About GlassDroid Basic</string>
     <string name="about_text">Apps on F-Droid are free and open source software (FOSS), they respect your privacy, and they\'re available for anyone to see the source code, build on and improve.\n\nApp distribution is transparent, privacy-respecting, and accountable, setting a standard that challenges the mobile ecosystem to do better.\n\nF-Droid\'s impact is measured not just in apps published, but in the freedom, trust, and digital rights it helps protect.\n\nHelp F-Droid to protect community-powered innovation and continue our mission of openness, privacy, and user empowerment.</string>
     <string name="about_license_text">This program is Free Software. You can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.</string>
     <string name="about_version">Version</string>
@@ -639,5 +639,82 @@
     <string name="icon_summary">Select the icon used for this app on home screen and app drawer</string>
     <string name="icon_intro">Select an icon and name for this app. This is shown on the home screen and app drawer.\n\nNote: Notifications will always use the default icon and name.</string>
     <string name="icon_calculator">Calculator</string>
+
+    <string name="liquid_glass_title">Liquid Glass</string>
+    <string name="liquid_glass_summary">Customize glass refraction, blur, and spring motion</string>
+    <string name="liquid_glass_tab_glass">Glass</string>
+    <string name="liquid_glass_tab_motion">Motion</string>
+    <string name="liquid_glass_preview_sample">GlassDroid Basic • Aa Bb Cc • 0123456789</string>
+    <string name="liquid_glass_profile_adaptive">Adaptive</string>
+    <string name="liquid_glass_profile_clear">Clear</string>
+    <string name="liquid_glass_profile_frosted">Frosted</string>
+    <string name="liquid_glass_profile_deep">Deep</string>
+    <string name="liquid_glass_profile_default">Adaptive</string>
+    <string name="liquid_glass_profile_readable">Frosted</string>
+    <string name="liquid_glass_profile_crystal">Clear</string>
+    <string name="liquid_glass_tint_color">Glass tint</string>
+    <string name="liquid_glass_tint_adaptive">Adaptive</string>
+    <string name="liquid_glass_tint_ocean">Ocean</string>
+    <string name="liquid_glass_tint_violet">Violet</string>
+    <string name="liquid_glass_tint_emerald">Emerald</string>
+    <string name="liquid_glass_tint_amber">Amber</string>
+    <string name="liquid_glass_tint_rose">Rose</string>
+    <string name="liquid_glass_tint_neutral">Neutral</string>
+    <string name="liquid_glass_blur">Blur intensity</string>
+    <string name="liquid_glass_transparency">Transparency</string>
+    <string name="liquid_glass_refraction_height">Refraction height</string>
+    <string name="liquid_glass_refraction_amount">Refraction amount</string>
+    <string name="liquid_glass_tint">Tint strength</string>
+    <string name="liquid_glass_highlight_intensity">Reflection &amp; highlights</string>
+    <string name="liquid_glass_vibrancy">Vibrancy</string>
+    <string name="liquid_glass_brightness">Brightness</string>
+    <string name="liquid_glass_chromatic_aberration">Chromatic dispersion</string>
+    <string name="liquid_glass_reduced_effects">Reduced visual effects</string>
+    <string name="liquid_glass_reduced_effects_summary">Lightweight glass surfaces without live backdrop blur shaders</string>
+    <string name="liquid_glass_reset_glass">Restore glass defaults</string>
+    <string name="liquid_glass_motion_intro">How every glass button, slider and sheet springs. Pick a profile or tune each part, then press Try it to feel it.</string>
+    <string name="liquid_glass_motion_enabled">Enable animations</string>
+    <string name="liquid_glass_motion_enabled_summary">Toggle tactile squish, ripples, cards, and liquid transitions</string>
+    <string name="liquid_glass_motion_intensity">Animation intensity</string>
+    <string name="liquid_glass_motion_normal">Normal</string>
+    <string name="liquid_glass_motion_performance">Performance</string>
+    <string name="liquid_glass_motion_bouncy">Bouncy</string>
+    <string name="liquid_glass_try_it">Try it</string>
+    <string name="liquid_glass_motion_bounce">Bounce</string>
+    <string name="liquid_glass_motion_speed">Speed</string>
+    <string name="liquid_glass_motion_press_depth">Press depth</string>
+    <string name="liquid_glass_motion_release_jiggle">Release jiggle</string>
+    <string name="liquid_glass_motion_drag_stretch">Drag stretch</string>
+    <string name="liquid_glass_motion_long_press_bloom">Long-press bloom</string>
+    <string name="liquid_glass_reset_motion">Restore motion defaults</string>
+    <string name="liquid_glass_try_it_toast">Liquid spring active — feel the squish &amp; bloom</string>
+    <string name="liquid_glass_reset_glass_toast">Glass settings restored to Adaptive defaults</string>
+    <string name="liquid_glass_reset_motion_toast">Motion physics restored to Bouncy defaults</string>
+    <string name="menu_app_details">App details</string>
+    <string name="copy_package_name">Copy package ID</string>
+    <string name="package_name_copied">Copied package ID</string>
+    <string name="screenshot_counter">%1$d / %2$d</string>
+
+    <string name="about_developer_badge">Developed by RSR Projects</string>
+    <string name="about_build_code">Build %1$d</string>
+    <string name="about_glassdroid_description">GlassDroid Basic is an independent RSR Projects fork of F-Droid Basic pairing verifiable open-source Android app distribution with real-time Kyant0 Liquid Glass optics, fluid jelly physics, and customizable tactile motion.</string>
+    <string name="about_what_makes_different_title">What Makes GlassDroid Basic Different</string>
+    <string name="about_diff_1">Real-time Kyant0 AndroidLiquidGlass optical refraction, configurable frosted blur, vibrancy, chromatic dispersion, inner glow, and rim highlights</string>
+    <string name="about_diff_2">Four optical presets (Adaptive, Clear, Frosted, Deep), custom glass tint swatches, transparency &amp; highlight sliders, and a Reduced Visual Effects performance toggle</string>
+    <string name="about_diff_3">Floating iOS-inspired navigation bar with hold-and-swipe Kyant0 jelly droplet lens while keeping icons and labels sharp</string>
+    <string name="about_diff_4">Elastic touch squish physics, expanding liquid ripples, one-shot staggered card entrances, icon pop, scroll parallax, and glass shimmer sweeps</string>
+    <string name="about_diff_5">Cold-open Liquid Glass unfurl and interactive card-melting app-detail transitions alongside animated liquid download progress and completion checkmarks</string>
+    <string name="about_links_rsr_title">GlassDroid Basic &amp; RSR Projects</string>
+    <string name="about_rsr_website">Official RSR Projects Website</string>
+    <string name="about_glassdroid_repo">GlassDroid Basic Source Repository</string>
+    <string name="about_star_repository">Star Repository on GitHub</string>
+    <string name="about_star_toast">Opening GlassDroid Basic on GitHub — tap ★ Star to support!</string>
+    <string name="about_upstream_title">Upstream F-Droid Basic Attribution</string>
+    <string name="about_upstream_summary">Built on the trusted open-source F-Droid Basic client (fdroidclient), retaining upstream repository verification, compatibility checks, updates, proxy support, and FOSS app distribution.</string>
+    <string name="about_upstream_website">F-Droid Project Website</string>
+    <string name="about_upstream_source">F-Droid Client Source (GitLab)</string>
+    <string name="about_oss_title">Open-Source Licences &amp; Acknowledgements</string>
+    <string name="about_credits_title">Credits</string>
+    <string name="about_credits_body">• GlassDroid Basic Fork &amp; Liquid Glass Overhaul: RSR Projects\n• Liquid Glass Optics &amp; Capsule Shapes: Kyant0 (AndroidLiquidGlass Backdrop &amp; Capsule)\n• Upstream Client &amp; Ecosystem: F-Droid Contributors</string>
 
 </resources>

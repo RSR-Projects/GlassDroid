@@ -21,23 +21,31 @@ package org.fdroid.ui.navigation
 import androidx.compose.animation.EnterExitState
 import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.movableContentOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.navigation3.scene.Scene
 import androidx.navigation3.scene.SceneDecoratorStrategy
 import androidx.navigation3.scene.SceneDecoratorStrategyScope
 import androidx.navigation3.ui.LocalNavAnimatedContentScope
+import com.kyant.backdrop.backdrops.layerBackdrop
+import com.kyant.backdrop.backdrops.rememberLayerBackdrop
+import org.fdroid.ui.glass.LocalBottomFloatingBarInset
+import org.fdroid.ui.glass.LocalLiquidBackdrop
 
 class ResponsiveNavigationScene<T : Any>(
   scene: Scene<T>,
   isBigScreen: Boolean,
+  showBottomBar: Boolean,
   sharedTransitionScope: SharedTransitionScope,
   navBarContent: @Composable (() -> Unit),
   navRailContent: @Composable (() -> Unit),
@@ -49,6 +57,7 @@ class ResponsiveNavigationScene<T : Any>(
       val animatedContentScope = LocalNavAnimatedContentScope.current
       val isMovableContentCaller =
         animatedContentScope.transition.targetState == EnterExitState.Visible
+      val backgroundColor = MaterialTheme.colorScheme.background
 
       with(sharedTransitionScope) {
         if (isBigScreen) {
@@ -61,12 +70,34 @@ class ResponsiveNavigationScene<T : Any>(
                 navRailContent()
               }
             }
-            Box(modifier = Modifier.weight(1f)) { scene.content() }
+            Box(modifier = Modifier.weight(1f)) {
+              CompositionLocalProvider(LocalBottomFloatingBarInset provides 0.dp) {
+                scene.content()
+              }
+            }
+          }
+        } else if (showBottomBar) {
+          val dockBackdrop = rememberLayerBackdrop {
+            drawRect(backgroundColor)
+            drawContent()
+          }
+          Box(Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.fillMaxSize().layerBackdrop(dockBackdrop)) {
+              CompositionLocalProvider(LocalBottomFloatingBarInset provides 88.dp) {
+                scene.content()
+              }
+            }
+            CompositionLocalProvider(LocalLiquidBackdrop provides dockBackdrop) {
+              Box(modifier = Modifier.align(Alignment.BottomCenter)) {
+                navBarContent()
+              }
+            }
           }
         } else {
-          Column(Modifier.fillMaxSize()) {
-            Box(modifier = Modifier.weight(1f)) { scene.content() }
-            navBarContent()
+          Box(Modifier.fillMaxSize()) {
+            CompositionLocalProvider(LocalBottomFloatingBarInset provides 0.dp) {
+              scene.content()
+            }
           }
         }
       }
@@ -76,6 +107,7 @@ class ResponsiveNavigationScene<T : Any>(
 @Composable
 fun <T : Any> rememberResponsiveNavigationSceneDecoratorStrategy(
   isBigScreen: Boolean,
+  showBottomBar: Boolean,
   navBar: @Composable (() -> Unit)?,
   navRail: @Composable () -> Unit,
   sharedTransitionScope: SharedTransitionScope,
@@ -83,12 +115,13 @@ fun <T : Any> rememberResponsiveNavigationSceneDecoratorStrategy(
   val currentNavBar by rememberUpdatedState(navBar)
   val currentNavRail by rememberUpdatedState(navRail)
 
-  val movableNavBar = remember(navBar) { movableContentOf { currentNavBar?.invoke() } }
+  val movableNavBar = remember { movableContentOf { currentNavBar?.invoke() } }
   val movableNavRail = remember { movableContentOf { currentNavRail() } }
 
-  return remember(isBigScreen, sharedTransitionScope) {
+  return remember(isBigScreen, showBottomBar, sharedTransitionScope) {
     ResponsiveNavigationSceneDecoratorStrategy(
       isBigScreen = isBigScreen,
+      showBottomBar = showBottomBar,
       sharedTransitionScope = sharedTransitionScope,
       navBarContent = movableNavBar,
       navRailContent = movableNavRail,
@@ -98,6 +131,7 @@ fun <T : Any> rememberResponsiveNavigationSceneDecoratorStrategy(
 
 class ResponsiveNavigationSceneDecoratorStrategy<T : Any>(
   private val isBigScreen: Boolean,
+  private val showBottomBar: Boolean,
   private val sharedTransitionScope: SharedTransitionScope,
   private val navBarContent: @Composable (() -> Unit),
   private val navRailContent: @Composable () -> Unit,
@@ -107,6 +141,7 @@ class ResponsiveNavigationSceneDecoratorStrategy<T : Any>(
     return ResponsiveNavigationScene(
       scene = scene,
       isBigScreen = isBigScreen,
+      showBottomBar = showBottomBar,
       sharedTransitionScope = sharedTransitionScope,
       navBarContent = navBarContent,
       navRailContent = navRailContent,

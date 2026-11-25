@@ -10,19 +10,17 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Dns
 import androidx.compose.material.icons.filled.Share
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -31,6 +29,11 @@ import androidx.compose.ui.unit.dp
 import org.fdroid.R
 import org.fdroid.download.Mirror
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassDialog
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidGlassSwitch
+import org.fdroid.ui.glass.LiquidGlassTextButton
+import org.fdroid.ui.glass.liquidRowSquish
 import org.fdroid.ui.utils.ExpandableSection
 import org.fdroid.ui.utils.FDroidOutlineButton
 
@@ -43,22 +46,23 @@ fun UserMirrors(
 ) {
   var showDeleteDialog by remember { mutableStateOf<Mirror?>(null) }
   if (showDeleteDialog != null)
-    AlertDialog(
+    LiquidGlassDialog(
       title = { Text(text = stringResource(R.string.repo_confirm_delete_mirror_title)) },
       text = { Text(text = stringResource(R.string.repo_confirm_delete_mirror_body)) },
       onDismissRequest = { showDeleteDialog = null },
       confirmButton = {
-        TextButton(
+        LiquidGlassTextButton(
           onClick = {
             onDeleteMirror(showDeleteDialog!!)
             showDeleteDialog = null
-          }
+          },
+          contentColor = MaterialTheme.colorScheme.error,
         ) {
-          Text(text = stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
+          Text(text = stringResource(R.string.delete))
         }
       },
       dismissButton = {
-        TextButton(onClick = { showDeleteDialog = null }) {
+        LiquidGlassTextButton(onClick = { showDeleteDialog = null }) {
           Text(stringResource(android.R.string.cancel))
         }
       },
@@ -106,14 +110,17 @@ private fun UserMirrorRow(
         )
       }
     },
-    trailingContent = { Switch(checked = item.isEnabled, onCheckedChange = null) },
+    trailingContent = { LiquidGlassSwitch(checked = item.isEnabled, onCheckedChange = null) },
     colors = ListItemDefaults.colors(MaterialTheme.colorScheme.background),
     modifier =
-      modifier.toggleable(
-        value = item.isEnabled,
-        role = Role.Switch,
-        onValueChange = { checked -> setMirrorEnabled(item.mirror, checked) },
-      ),
+      modifier
+        .liquidRowSquish()
+        .clip(LiquidGlassShapes.SmallCardShape)
+        .toggleable(
+          value = item.isEnabled,
+          role = Role.Switch,
+          onValueChange = { checked -> setMirrorEnabled(item.mirror, checked) },
+        ),
   )
 }
 

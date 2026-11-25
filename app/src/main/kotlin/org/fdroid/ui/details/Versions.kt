@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material3.Badge
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -23,6 +22,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalInspectionMode
@@ -37,6 +37,10 @@ import kotlinx.coroutines.launch
 import org.fdroid.R
 import org.fdroid.database.AppVersion
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassBadge
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidSprings
+import org.fdroid.ui.glass.liquidRowSquish
 import org.fdroid.ui.utils.ExpandIconChevron
 import org.fdroid.ui.utils.ExpandableSection
 import org.fdroid.ui.utils.FDroidOutlineButton
@@ -81,7 +85,11 @@ fun Version(
     Row(
       horizontalArrangement = spacedBy(16.dp),
       verticalAlignment = Alignment.CenterVertically,
-      modifier = Modifier.padding(bottom = 8.dp).clickable { expanded = !expanded },
+      modifier =
+        Modifier.padding(bottom = 8.dp)
+          .liquidRowSquish()
+          .clip(LiquidGlassShapes.SmallCardShape)
+          .clickable { expanded = !expanded },
     ) {
       ExpandIconChevron(expanded)
       Row(verticalAlignment = Alignment.CenterVertically) {
@@ -100,14 +108,14 @@ fun Version(
           )
         }
         if (item.isInstalled)
-          Badge(
+          LiquidGlassBadge(
             containerColor = MaterialTheme.colorScheme.primary,
             modifier = Modifier.padding(start = 8.dp),
           ) {
             Text(text = stringResource(R.string.app_installed), modifier = Modifier.padding(4.dp))
           }
         if (item.isSuggested)
-          Badge(
+          LiquidGlassBadge(
             containerColor = MaterialTheme.colorScheme.secondary,
             modifier = Modifier.padding(start = 8.dp),
           ) {
@@ -117,6 +125,8 @@ fun Version(
     }
     AnimatedVisibility(
       visible = expanded,
+      enter = LiquidSprings.expandEnter(),
+      exit = LiquidSprings.expandExit(),
       modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
     ) {
       val coroutineScope = rememberCoroutineScope()

@@ -12,32 +12,32 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement.SpaceBetween
 import androidx.compose.foundation.layout.Arrangement.spacedBy
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ContentPaste
 import androidx.compose.material.icons.filled.QrCode
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -48,6 +48,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.layout.onPlaced
@@ -59,6 +60,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
@@ -76,6 +78,11 @@ import org.fdroid.R
 import org.fdroid.download.NetworkState
 import org.fdroid.repo.None
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassCard
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidSprings
+import org.fdroid.ui.glass.fastLiquidSurface
+import org.fdroid.ui.glass.liquidRowSquish
 import org.fdroid.ui.utils.ExpandIconArrow
 import org.fdroid.ui.utils.FDroidButton
 import org.fdroid.ui.utils.FDroidOutlineButton
@@ -123,14 +130,14 @@ fun AddRepoIntroContent(
   Column(
     verticalArrangement = spacedBy(16.dp),
     modifier =
-      Modifier.padding(
+      Modifier.imePadding()
+        .fillMaxSize()
+        .verticalScroll(scrollState)
+        .padding(
           top = paddingValues.calculateTopPadding(),
           start = paddingValues.calculateStartPadding(LocalLayoutDirection.current),
           end = paddingValues.calculateEndPadding(LocalLayoutDirection.current),
-        )
-        .imePadding()
-        .fillMaxSize()
-        .verticalScroll(scrollState),
+        ),
   ) {
     if (!networkState.isOnline) OfflineBar()
     Column(
@@ -156,11 +163,13 @@ fun AddRepoIntroContent(
       )
       AnimatedVisibility(
         visible = showPermissionWarning,
+        enter = LiquidSprings.expandEnter(),
+        exit = LiquidSprings.expandExit(),
         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
       ) {
-        Card(
-          colors =
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.inverseSurface),
+        LiquidGlassCard(
+          squishable = true,
+          containerColor = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.9f),
           modifier =
             Modifier.fillMaxWidth().clickable {
               val intent =
@@ -170,12 +179,16 @@ fun AddRepoIntroContent(
               context.startActivitySafe(intent)
             },
         ) {
-          Text(
-            modifier = Modifier.padding(8.dp),
-            text = stringResource(R.string.permission_camera_denied),
-            textAlign = TextAlign.Center,
-            style = MaterialTheme.typography.bodyLarge,
-          )
+          CompositionLocalProvider(
+            LocalContentColor provides MaterialTheme.colorScheme.inverseOnSurface
+          ) {
+            Text(
+              modifier = Modifier.padding(12.dp),
+              text = stringResource(R.string.permission_camera_denied),
+              textAlign = TextAlign.Center,
+              style = MaterialTheme.typography.bodyLarge,
+            )
+          }
         }
       }
       var manualExpanded by rememberSaveable { mutableStateOf(isPreview) }
@@ -183,9 +196,11 @@ fun AddRepoIntroContent(
         horizontalArrangement = SpaceBetween,
         verticalAlignment = CenterVertically,
         modifier =
-          Modifier.fillMaxWidth().heightIn(min = ButtonDefaults.MinHeight).clickable {
-            manualExpanded = !manualExpanded
-          },
+          Modifier.fillMaxWidth()
+            .defaultMinSize(minHeight = 48.dp)
+            .liquidRowSquish()
+            .clip(LiquidGlassShapes.SmallCardShape)
+            .clickable { manualExpanded = !manualExpanded },
       ) {
         Text(
           text = stringResource(R.string.repo_enter_url),
@@ -200,21 +215,41 @@ fun AddRepoIntroContent(
       val coroutineScope = rememberCoroutineScope()
       AnimatedVisibility(
         visible = manualExpanded,
+        enter = LiquidSprings.expandEnter(),
+        exit = LiquidSprings.expandExit(),
         modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
       ) {
         Column(horizontalAlignment = Alignment.End, verticalArrangement = spacedBy(16.dp)) {
-          TextField(
-            value = textState.value,
-            minLines = 2,
-            onValueChange = { textState.value = it },
-            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
-            keyboardActions = KeyboardActions(onGo = { onFetchRepo(textState.value.text) }),
+          Box(
             modifier =
-              Modifier.fillMaxWidth().focusRequester(focusRequester).onPlaced {
-                focusRequester.requestFocus()
-                coroutineScope.launch { scrollState.animateScrollTo(scrollState.maxValue) }
-              },
-          )
+              Modifier.fillMaxWidth()
+                .defaultMinSize(minHeight = 68.dp)
+                .fastLiquidSurface(shape = LiquidGlassShapes.SmallCardShape)
+                .padding(horizontal = 16.dp, vertical = 14.dp)
+          ) {
+            if (textState.value.text.isEmpty()) {
+              Text(
+                text = "https://...",
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+              )
+            }
+            BasicTextField(
+              value = textState.value,
+              minLines = 2,
+              onValueChange = { textState.value = it },
+              textStyle =
+                MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface),
+              cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
+              keyboardOptions = KeyboardOptions(imeAction = ImeAction.Go),
+              keyboardActions = KeyboardActions(onGo = { onFetchRepo(textState.value.text) }),
+              modifier =
+                Modifier.fillMaxWidth().focusRequester(focusRequester).onPlaced {
+                  focusRequester.requestFocus()
+                  coroutineScope.launch { scrollState.animateScrollTo(scrollState.maxValue) }
+                },
+            )
+          }
           Row(horizontalArrangement = spacedBy(16.dp), verticalAlignment = CenterVertically) {
             val clipboardManager = LocalClipboardManager.current
             FDroidOutlineButton(

@@ -6,12 +6,14 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.StateFlow
 import org.fdroid.settings.SettingsConstants.PREF_DEFAULT_DYNAMIC_COLORS
 import org.fdroid.ui.apps.AppWithIssueItem
+import org.fdroid.ui.glass.LiquidGlassConfig
 
 data class MainModel(
   val dynamicColors: Boolean,
   val numUpdates: Int,
   val hasAppIssues: Boolean,
   val showOnboarding: Boolean,
+  val liquidGlassConfig: LiquidGlassConfig = LiquidGlassConfig(),
 )
 
 @Composable
@@ -20,11 +22,13 @@ fun MainPresenter(
   numUpdatesFlow: StateFlow<Int>,
   appsWithIssuesFlow: StateFlow<List<AppWithIssueItem>?>,
   showOnboardingFlow: StateFlow<Boolean>,
+  liquidGlassConfigFlow: StateFlow<LiquidGlassConfig>,
 ): MainModel {
   return MainModel(
     dynamicColors = dynamicColorsFlow.collectAsState(initial = PREF_DEFAULT_DYNAMIC_COLORS).value,
     numUpdates = numUpdatesFlow.collectAsState().value,
     hasAppIssues = !appsWithIssuesFlow.collectAsState().value.isNullOrEmpty(),
     showOnboarding = showOnboardingFlow.collectAsState().value,
+    liquidGlassConfig = liquidGlassConfigFlow.collectAsState().value,
   )
 }

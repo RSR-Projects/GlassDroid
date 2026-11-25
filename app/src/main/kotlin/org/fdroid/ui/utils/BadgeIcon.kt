@@ -9,7 +9,6 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.SecurityUpdate
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -23,6 +22,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.fdroid.R
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassBadgedBox
 
 @Composable
 fun BadgeIcon(
@@ -54,7 +54,7 @@ fun InstalledBadge() =
 private fun Preview() {
   FDroidContent {
     Column {
-      BadgedBox(
+      LiquidGlassBadgedBox(
         badge = {
           BadgeIcon(
             icon = Icons.Filled.SecurityUpdate,
@@ -65,14 +65,14 @@ private fun Preview() {
         modifier = Modifier.padding(16.dp),
       ) {
         Image(
-          painter = painterResource(R.drawable.ic_launcher_foreground),
+          painter = painterResource(R.drawable.ic_glassdroid_fdroid_icon),
           contentDescription = null,
           modifier = Modifier.size(48.dp),
         )
       }
-      BadgedBox(badge = { InstalledBadge() }, modifier = Modifier.padding(16.dp)) {
+      LiquidGlassBadgedBox(badge = { InstalledBadge() }, modifier = Modifier.padding(16.dp)) {
         Image(
-          painter = painterResource(R.drawable.ic_launcher_foreground),
+          painter = painterResource(R.drawable.ic_glassdroid_fdroid_icon),
           contentDescription = null,
           modifier = Modifier.size(48.dp),
         )

@@ -6,16 +6,20 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.selection.toggleable
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import org.fdroid.R
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidGlassSwitch
+import org.fdroid.ui.glass.liquidRowSquish
 
 @Composable
 fun FDroidSwitchRow(
@@ -31,6 +35,8 @@ fun FDroidSwitchRow(
     verticalAlignment = CenterVertically,
     modifier =
       Modifier.fillMaxWidth()
+        .liquidRowSquish(enabled = enabled)
+        .clip(LiquidGlassShapes.SmallCardShape)
         .toggleable(
           value = checked,
           enabled = enabled,
@@ -38,11 +44,11 @@ fun FDroidSwitchRow(
           onValueChange = onCheckedChange,
         )
         // add padding after toggleable to have a larger touch area
-        .padding(vertical = verticalPadding),
+        .padding(vertical = verticalPadding, horizontal = 4.dp),
   ) {
     leadingContent?.invoke()
     Text(text = text, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-    Switch(checked = checked, onCheckedChange = null, enabled = enabled)
+    LiquidGlassSwitch(checked = checked, onCheckedChange = null, enabled = enabled)
   }
 }
 

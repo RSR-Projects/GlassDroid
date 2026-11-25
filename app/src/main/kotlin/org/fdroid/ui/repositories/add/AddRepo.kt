@@ -1,14 +1,7 @@
 package org.fdroid.ui.repositories.add
 
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
@@ -29,8 +22,10 @@ import org.fdroid.repo.FetchResult
 import org.fdroid.repo.Fetching
 import org.fdroid.repo.None
 import org.fdroid.repo.RepoUpdateWorker
+import org.fdroid.ui.glass.LiquidFloatingTopBar
+import org.fdroid.ui.glass.LiquidScaffold
+import org.fdroid.ui.utils.BackButton
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddRepo(
   state: AddRepoState,
@@ -43,16 +38,10 @@ fun AddRepo(
   onRepoAdded: (String, Long) -> Unit,
   onBackClicked: () -> Unit,
 ) {
-  Scaffold(
+  LiquidScaffold(
     topBar = {
-      TopAppBar(
-        navigationIcon = {
-          if (state !is Adding) {
-            IconButton(onClick = onBackClicked) {
-              Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.back))
-            }
-          }
-        },
+      LiquidFloatingTopBar(
+        navigationIcon = if (state !is Adding) { { BackButton(onClick = onBackClicked) } } else null,
         title = {
           Text(
             text =
@@ -70,6 +59,7 @@ fun AddRepo(
             maxLines = 1,
           )
         },
+        showActions = false,
       )
     }
   ) { paddingValues ->

@@ -6,8 +6,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -18,13 +16,13 @@ import androidx.compose.ui.unit.dp
 import org.fdroid.R
 import org.fdroid.database.Repository
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassLinearProgress
 import org.fdroid.ui.utils.ExpandableSection
 import org.fdroid.ui.utils.FDroidOutlineButton
 import org.fdroid.ui.utils.FDroidSwitchRow
 import org.fdroid.ui.utils.getRepository
 
 @Composable
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun RepoSettings(
   repo: Repository,
   archiveState: ArchiveState,
@@ -49,7 +47,7 @@ fun RepoSettings(
           }
         }
         ArchiveState.LOADING -> {
-          LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp))
+          LiquidGlassLinearProgress(modifier = Modifier.fillMaxWidth().padding(vertical = 24.dp))
         }
         else -> {
           FDroidSwitchRow(

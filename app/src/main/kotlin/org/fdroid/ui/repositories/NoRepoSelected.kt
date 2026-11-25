@@ -1,6 +1,5 @@
 package org.fdroid.ui.repositories
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -31,7 +30,6 @@ fun NoRepoSelected() {
     modifier =
       Modifier.fillMaxSize()
         .verticalScroll(rememberScrollState())
-        .background(MaterialTheme.colorScheme.background)
         .padding(16.dp),
   ) {
     Column(

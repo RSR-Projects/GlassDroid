@@ -10,10 +10,10 @@ import androidx.compose.material.icons.filled.Public
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -22,6 +22,9 @@ import androidx.compose.ui.unit.dp
 import org.fdroid.R
 import org.fdroid.download.Mirror
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidGlassSwitch
+import org.fdroid.ui.glass.liquidRowSquish
 import org.fdroid.ui.utils.ExpandableSection
 
 @Composable
@@ -54,14 +57,17 @@ private fun OfficialMirrorRow(
   ListItem(
     leadingContent = { Text(text = item.emoji, modifier = Modifier.width(20.dp)) },
     headlineContent = { SelectionContainer { Text(item.url) } },
-    trailingContent = { Switch(checked = item.isEnabled, onCheckedChange = null) },
+    trailingContent = { LiquidGlassSwitch(checked = item.isEnabled, onCheckedChange = null) },
     colors = ListItemDefaults.colors(MaterialTheme.colorScheme.background),
     modifier =
-      modifier.toggleable(
-        value = item.isEnabled,
-        role = Role.Switch,
-        onValueChange = { checked -> setMirrorEnabled(item.mirror, checked) },
-      ),
+      modifier
+        .liquidRowSquish()
+        .clip(LiquidGlassShapes.SmallCardShape)
+        .toggleable(
+          value = item.isEnabled,
+          role = Role.Switch,
+          onValueChange = { checked -> setMirrorEnabled(item.mirror, checked) },
+        ),
   )
 }
 

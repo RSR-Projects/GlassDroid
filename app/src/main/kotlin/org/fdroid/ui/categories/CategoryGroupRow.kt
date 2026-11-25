@@ -1,10 +1,6 @@
 package org.fdroid.ui.categories
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,8 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -24,16 +20,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.Center
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalInspectionMode
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.PreviewDynamicColors
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import androidx.navigation3.runtime.NavKey
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassIconButton
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidSprings
+import org.fdroid.ui.glass.liquidRowSquish
 import org.fdroid.ui.lists.AppListType
 import org.fdroid.ui.navigation.NavigationKey
 import org.fdroid.ui.utils.ExpandIconArrow
@@ -54,8 +54,8 @@ fun CategoryGroupRow(
         contentAlignment = Center,
         modifier =
           Modifier.size(40.dp)
-            .clip(MaterialTheme.shapes.small)
-            .background(MaterialTheme.colorScheme.primaryContainer),
+            .clip(LiquidGlassShapes.SmallCardShape)
+            .background(MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.85f)),
       ) {
         Icon(
           imageVector = group.imageVector,
@@ -68,17 +68,23 @@ fun CategoryGroupRow(
     supportingContent = {
       Text(text = stringResource(group.summary), maxLines = 2, overflow = TextOverflow.Ellipsis)
     },
-    trailingContent = { IconButton(onClick = onClick) { ExpandIconArrow(expanded) } },
+    trailingContent = {
+      LiquidGlassIconButton(onClick = onClick) {
+        ExpandIconArrow(expanded)
+      }
+    },
+    colors = ListItemDefaults.colors(containerColor = Color.Transparent),
     onClick = onClick,
+    modifier = Modifier.liquidRowSquish(),
   ) {
     Text(text = stringResource(group.name), maxLines = 2, overflow = TextOverflow.Ellipsis)
   }
   AnimatedVisibility(
     visible = expanded,
-    enter = fadeIn() + expandVertically(),
-    exit = fadeOut() + shrinkVertically(),
+    enter = LiquidSprings.expandEnter(),
+    exit = LiquidSprings.expandExit(),
   ) {
-    ChipFlowRow(modifier = Modifier.padding(8.dp)) {
+    ChipFlowRow(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)) {
       categories.forEach { categoryItem ->
         CategoryChip(
           categoryItem = categoryItem,
@@ -97,20 +103,6 @@ fun CategoryGroupRow(
 @PreviewLightDark
 private fun Preview() {
   FDroidContent {
-    val categories =
-      listOf(
-        CategoryItem("App Store & Updater", "App Store & Updater"),
-        CategoryItem("Browser", "Browser"),
-        CategoryItem("Calendar & Agenda", "Calendar & Agenda"),
-      )
-    Column { CategoryGroupRow(CategoryGroups.productivity, categories) {} }
-  }
-}
-
-@Composable
-@PreviewDynamicColors
-private fun PreviewDynamicColors() {
-  FDroidContent(dynamicColors = true) {
     val categories =
       listOf(
         CategoryItem("App Store & Updater", "App Store & Updater"),

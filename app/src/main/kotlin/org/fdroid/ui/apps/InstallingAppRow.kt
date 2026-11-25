@@ -4,9 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.ErrorOutline
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -14,39 +12,61 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.fdroid.R
 import org.fdroid.install.InstallState
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidCompletionCheck
+import org.fdroid.ui.glass.LiquidGlassCircularProgress
+import org.fdroid.ui.glass.LiquidGlassDefaults
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LocalReducedMotion
+import org.fdroid.ui.glass.appHeroSharedBounds
+import org.fdroid.ui.glass.appHeroSharedElement
 import org.fdroid.ui.utils.AsyncShimmerImage
 import org.fdroid.ui.utils.VersionLine
 
 @Composable
 fun InstallingAppRow(app: InstallingAppItem, isSelected: Boolean, modifier: Modifier = Modifier) {
+  val selectedColor = LiquidGlassDefaults.palette().selectedPillTint
+  val reducedMotion = LocalReducedMotion.current
   ListItem(
     leadingContent = {
       AsyncShimmerImage(
         model = app.iconModel,
         error = painterResource(R.drawable.ic_repo_app_default),
         contentDescription = null,
-        modifier = Modifier.size(48.dp),
+        modifier =
+          Modifier.size(48.dp)
+            .appHeroSharedElement("app_icon_${app.packageName}")
+            .clip(MaterialTheme.shapes.medium),
       )
     },
-    headlineContent = { Text(app.name) },
+    headlineContent = {
+      Text(
+        text = app.name,
+        modifier = Modifier.appHeroSharedElement("app_title_${app.packageName}"),
+      )
+    },
     supportingContent = {
       VersionLine(app.installState.currentVersionName, app.installState.versionName)
     },
     trailingContent = {
       if (app.installState is InstallState.Installed) {
-        Icon(
-          imageVector = Icons.Default.CheckCircle,
-          contentDescription = stringResource(R.string.app_installed),
-          tint = MaterialTheme.colorScheme.secondary,
-          modifier = Modifier.padding(8.dp),
+        val installedDesc = stringResource(R.string.app_installed)
+        LiquidCompletionCheck(
+          reducedMotion = reducedMotion,
+          modifier =
+            Modifier.padding(6.dp)
+              .size(28.dp)
+              .semantics { contentDescription = installedDesc },
         )
       } else if (app.installState is InstallState.Error) {
         val desc = stringResource(R.string.notification_title_summary_install_error)
@@ -58,22 +78,21 @@ fun InstallingAppRow(app: InstallingAppItem, isSelected: Boolean, modifier: Modi
         )
       } else {
         if (app.installState is InstallState.Downloading) {
-          CircularProgressIndicator(progress = { app.installState.progress })
+          LiquidGlassCircularProgress(progress = { app.installState.progress })
         } else {
-          CircularProgressIndicator()
+          LiquidGlassCircularProgress()
         }
       }
     },
     colors =
       ListItemDefaults.colors(
-        containerColor =
-          if (isSelected) {
-            MaterialTheme.colorScheme.surfaceVariant
-          } else {
-            Color.Transparent
-          }
+        containerColor = if (isSelected) selectedColor else Color.Transparent
       ),
-    modifier = modifier,
+    modifier =
+      modifier.appHeroSharedBounds(
+        key = "app_card_${app.packageName}",
+        clipShape = LiquidGlassShapes.SmallCardShape,
+      ),
   )
 }
 

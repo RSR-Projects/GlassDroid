@@ -13,19 +13,24 @@ import androidx.compose.material.icons.filled.History
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
 import androidx.compose.material3.ListItem
+import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.fdroid.R
 import org.fdroid.search.SavedSearch
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidGlassTextButton
+import org.fdroid.ui.glass.liquidRowSquish
+import org.fdroid.ui.glass.springListItem
 
 @OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun LazyListScope.pastSearches(
@@ -40,7 +45,10 @@ fun LazyListScope.pastSearches(
         style = MaterialTheme.typography.labelLarge,
         modifier = Modifier.padding(horizontal = 16.dp).weight(1f),
       )
-      TextButton(onClick = onClearSavedSearches, modifier = Modifier.padding(horizontal = 8.dp)) {
+      LiquidGlassTextButton(
+        onClick = onClearSavedSearches,
+        modifier = Modifier.padding(horizontal = 8.dp),
+      ) {
         Text(stringResource(R.string.clear))
       }
     }
@@ -53,12 +61,18 @@ fun LazyListScope.pastSearches(
           contentDescription = null,
           modifier =
             Modifier.clip(CircleShape)
-              .background(MaterialTheme.colorScheme.surfaceContainer)
+              .background(MaterialTheme.colorScheme.surfaceContainer.copy(alpha = 0.7f))
               .padding(8.dp),
         )
       },
+      colors = ListItemDefaults.colors(containerColor = Color.Transparent),
       onClick = { onSearch(item.query) },
-      modifier = Modifier.fillMaxWidth().animateItem(),
+      modifier =
+        Modifier.fillMaxWidth()
+          .springListItem(this)
+          .padding(horizontal = 8.dp)
+          .liquidRowSquish()
+          .clip(LiquidGlassShapes.SmallCardShape),
     ) {
       Text(item.query)
     }

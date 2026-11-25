@@ -3,6 +3,7 @@ package org.fdroid.ui.repositories.details
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -10,8 +11,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -27,30 +26,36 @@ import org.fdroid.R
 import org.fdroid.database.Repository
 import org.fdroid.repo.RepoUpdateProgress
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassLinearProgress
+import org.fdroid.ui.glass.LocalLiquidGlassConfig
 import org.fdroid.ui.utils.ExpandableSection
 import org.fdroid.ui.utils.HintOverlayContainer
 import org.fdroid.ui.utils.getRepoDetailsInfo
 
 @Composable
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun RepoDetailsContent(
   info: RepoDetailsInfo,
   onShowAppsClicked: (String, Long) -> Unit,
-  modifier: Modifier,
+  paddingValues: PaddingValues = PaddingValues(),
+  modifier: Modifier = Modifier,
 ) {
   val repo = info.model.repo as Repository
   val context = LocalContext.current
   Column(
     verticalArrangement = spacedBy(16.dp),
-    modifier = modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
+    modifier = modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(paddingValues),
   ) {
     // show progress here as well, if repo is currently updating
     val updateState = info.model.updateState
     if (updateState is RepoUpdateProgress) {
-      val animatedProgress by animateFloatAsState(targetValue = updateState.progress)
-      LinearWavyProgressIndicator(
+      val glassConfig = LocalLiquidGlassConfig.current
+      val animatedProgress by
+        animateFloatAsState(
+          targetValue = updateState.progress,
+          animationSpec = glassConfig.smoothSpatialSpring(),
+        )
+      LiquidGlassLinearProgress(
         progress = { animatedProgress },
-        stopSize = 0.dp,
         modifier = Modifier.fillMaxWidth(),
       )
     }

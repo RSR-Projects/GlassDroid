@@ -1,7 +1,9 @@
 package org.fdroid.ui.lists
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement.spacedBy
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -12,39 +14,33 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.plus
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material.icons.filled.FilterList
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.PlainTooltip
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition.Companion.Below
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTooltipState
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -58,6 +54,19 @@ import com.viktormykhailiv.compose.hints.rememberHintController
 import org.fdroid.R
 import org.fdroid.database.AppListSortOrder
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.AppContextMenu
+import org.fdroid.ui.glass.LiquidFloatingTopBar
+import org.fdroid.ui.glass.LiquidGlassBadge
+import org.fdroid.ui.glass.LiquidGlassBadgedBox
+import org.fdroid.ui.glass.LiquidGlassBottomSheet
+import org.fdroid.ui.glass.LiquidGlassIconButton
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidScaffold
+import org.fdroid.ui.glass.liquidRowSquish
+import org.fdroid.ui.glass.rememberLiquidMeltOpener
+import org.fdroid.ui.glass.reportLiquidScroll
+import org.fdroid.ui.glass.springListItem
+import org.fdroid.ui.glass.staggeredLiquidEntrance
 import org.fdroid.ui.search.TopSearchBar
 import org.fdroid.ui.utils.BackButton
 import org.fdroid.ui.utils.BigLoadingIndicator
@@ -77,7 +86,6 @@ fun AppList(
   onItemClick: (String) -> Unit,
 ) {
   var searchActive by rememberSaveable { mutableStateOf(false) }
-  val scrollBehavior = enterAlwaysScrollBehavior(rememberTopAppBarState())
 
   val hintController = rememberHintController()
   val hint =
@@ -99,11 +107,12 @@ fun AppList(
     }
   }
 
-  Scaffold(
+  LiquidScaffold(
     topBar = {
       if (searchActive) {
         val onSearchCleared = { appListInfo.actions.onSearch("") }
         TopSearchBar(
+          showActions = true,
           onSearch = appListInfo.actions::onSearch,
           onSearchCleared = onSearchCleared,
           onHideSearch = {
@@ -117,8 +126,11 @@ fun AppList(
             )
           },
         )
-      } else
-        TopAppBar(
+      } else {
+        LiquidFloatingTopBar(
+          navigationIcon = {
+            BackButton(onClick = { if (searchActive) searchActive = false else onBackClicked() })
+          },
           title = {
             Text(
               text = appListInfo.list.title,
@@ -126,9 +138,7 @@ fun AppList(
               overflow = TextOverflow.MiddleEllipsis,
             )
           },
-          navigationIcon = {
-            BackButton(onClick = { if (searchActive) searchActive = false else onBackClicked() })
-          },
+          showActions = true,
           actions = {
             TopAppBarButton(
               imageVector = Icons.AutoMirrored.Default.ManageSearch,
@@ -141,10 +151,10 @@ fun AppList(
               modifier = Modifier.hintAnchor(state = hintAnchor, shape = RoundedCornerShape(16.dp)),
             )
           },
-          scrollBehavior = scrollBehavior,
         )
+      }
     },
-    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    modifier = modifier,
   ) { paddingValues ->
     val listState = rememberSaveable(saver = LazyListState.Saver) { LazyListState() }
     Column(modifier = Modifier.fillMaxSize().imePadding()) {
@@ -156,42 +166,70 @@ fun AppList(
           textAlign = TextAlign.Center,
           modifier = Modifier.fillMaxSize().padding(paddingValues).padding(16.dp),
         )
-      } else
+      } else {
+        val haptic = LocalHapticFeedback.current
         LazyColumn(
           state = listState,
           contentPadding = paddingValues + PaddingValues(top = 8.dp),
           verticalArrangement = spacedBy(8.dp),
           modifier =
-            Modifier.then(if (currentPackageName == null) Modifier else Modifier.selectableGroup()),
+            Modifier.reportLiquidScroll(listState)
+              .then(if (currentPackageName == null) Modifier else Modifier.selectableGroup()),
         ) {
-          items(apps, key = { it.packageName }, contentType = { "A" }) { navItem ->
+          itemsIndexed(apps, key = { _, it -> it.packageName }, contentType = { _, _ -> "A" }) {
+            index,
+            navItem ->
             val isSelected = currentPackageName == navItem.packageName
+            var menuExpanded by remember { mutableStateOf(false) }
+            val (meltModifier, openWithMelt) =
+              rememberLiquidMeltOpener(navItem.packageName) { onItemClick(navItem.packageName) }
             val interactionModifier =
               if (currentPackageName == null) {
-                Modifier.clickable(onClick = { onItemClick(navItem.packageName) })
+                Modifier.combinedClickable(
+                  onClick = openWithMelt,
+                  onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    menuExpanded = true
+                  },
+                )
               } else {
                 Modifier.selectable(
                   selected = isSelected,
-                  onClick = { onItemClick(navItem.packageName) },
+                  onClick = openWithMelt,
                 )
               }
-            AppListRow(
-              item = navItem,
-              isSelected = isSelected,
+            Box(
               modifier =
                 Modifier.fillMaxWidth()
-                  .animateItem()
-                  .padding(horizontal = 8.dp)
-                  .then(interactionModifier),
-            )
+                  .springListItem(this)
+                  .staggeredLiquidEntrance(key = navItem.packageName, index = index),
+            ) {
+              AppListRow(
+                item = navItem,
+                isSelected = isSelected,
+                modifier =
+                  Modifier.fillMaxWidth()
+                    .padding(horizontal = 8.dp)
+                    .then(meltModifier)
+                    .liquidRowSquish()
+                    .clip(LiquidGlassShapes.SmallCardShape)
+                    .then(interactionModifier),
+              )
+              AppContextMenu(
+                expanded = menuExpanded,
+                packageName = navItem.packageName,
+                appName = navItem.name,
+                isInstalled = navItem.isInstalled,
+                onDismissRequest = { menuExpanded = false },
+                onOpenDetails = openWithMelt,
+              )
+            }
           }
         }
+      }
       // Bottom Sheet
-      val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
       if (appListInfo.showFilters) {
-        ModalBottomSheet(
-          modifier = Modifier.fillMaxHeight(),
-          sheetState = sheetState,
+        LiquidGlassBottomSheet(
           onDismissRequest = { appListInfo.actions.toggleFilterVisibility() },
         ) {
           AppsFilter(info = appListInfo)
@@ -213,9 +251,16 @@ private fun FilterButton(
     tooltip = { PlainTooltip { Text(stringResource(R.string.filter)) } },
     state = rememberTooltipState(),
   ) {
-    IconButton(onClick = toggleFilterVisibility, modifier = modifier) {
-      BadgedBox(
-        badge = { if (showFilterBadge) Badge(containerColor = MaterialTheme.colorScheme.secondary) }
+    LiquidGlassIconButton(
+      onClick = toggleFilterVisibility,
+      modifier = modifier,
+    ) {
+      LiquidGlassBadgedBox(
+        badge = {
+          if (showFilterBadge) {
+            LiquidGlassBadge(containerColor = MaterialTheme.colorScheme.secondary)
+          }
+        }
       ) {
         Icon(
           imageVector = Icons.Filled.FilterList,

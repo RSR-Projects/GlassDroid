@@ -7,9 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularWavyProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -19,10 +16,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -35,9 +29,11 @@ import org.fdroid.repo.RepoUpdateProgress
 import org.fdroid.repo.RepoUpdateState
 import org.fdroid.repo.RepoUpdateWorker
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassButton
+import org.fdroid.ui.glass.LiquidGlassCircularProgress
+import org.fdroid.ui.glass.LocalLiquidGlassConfig
 
 @Composable
-@OptIn(ExperimentalMaterial3ExpressiveApi::class)
 fun FirstStart(
   networkState: NetworkState,
   repoUpdateState: RepoUpdateState?,
@@ -70,7 +66,10 @@ fun FirstStart(
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(16.dp).fillMaxWidth(),
       )
-      Button(onClick = { override = true }, modifier = Modifier.align(CenterHorizontally)) {
+      LiquidGlassButton(
+        onClick = { override = true },
+        modifier = Modifier.align(CenterHorizontally),
+      ) {
         Text(stringResource(R.string.first_start_button))
       }
     } else {
@@ -81,26 +80,22 @@ fun FirstStart(
         textAlign = TextAlign.Center,
         modifier = Modifier.padding(16.dp).fillMaxWidth(),
       )
-      // use thicker stroke for larger circle
-      val stroke = Stroke(width = with(LocalDensity.current) { 6.dp.toPx() }, cap = StrokeCap.Round)
       val progressModifier = Modifier.padding(16.dp).size(128.dp).align(CenterHorizontally)
       // show indeterminate circle if we don't have any progress (may take a bit to start)
       val progress = (repoUpdateState as? RepoUpdateProgress)?.progress ?: 0f
-      if (progress == 0f)
-        CircularWavyProgressIndicator(
-          wavelength = 24.dp,
-          stroke = stroke,
-          trackStroke = stroke,
-          modifier = progressModifier,
-        )
-      else {
+      if (progress == 0f) {
+        LiquidGlassCircularProgress(strokeWidth = 6.dp, modifier = progressModifier)
+      } else {
+        val glassConfig = LocalLiquidGlassConfig.current
         // animate real progress (download and DB insertion)
-        val animatedProgress by animateFloatAsState(targetValue = progress)
-        CircularWavyProgressIndicator(
+        val animatedProgress by
+          animateFloatAsState(
+            targetValue = progress,
+            animationSpec = glassConfig.smoothSpatialSpring(),
+          )
+        LiquidGlassCircularProgress(
           progress = { animatedProgress },
-          wavelength = 24.dp,
-          stroke = stroke,
-          trackStroke = stroke,
+          strokeWidth = 6.dp,
           modifier = progressModifier,
         )
       }

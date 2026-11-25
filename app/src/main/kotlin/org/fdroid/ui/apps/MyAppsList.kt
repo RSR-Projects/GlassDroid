@@ -4,6 +4,7 @@ import androidx.annotation.RestrictTo
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -15,11 +16,8 @@ import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshDefaults.Indicator
@@ -34,6 +32,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,15 @@ import org.fdroid.R
 import org.fdroid.database.NotAvailable
 import org.fdroid.install.InstallState
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.AppContextMenu
+import org.fdroid.ui.glass.LiquidGlassButton
+import org.fdroid.ui.glass.LiquidGlassCard
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidGlassTextButton
+import org.fdroid.ui.glass.liquidRowSquish
+import org.fdroid.ui.glass.rememberLiquidMeltOpener
+import org.fdroid.ui.glass.reportLiquidScroll
+import org.fdroid.ui.glass.springListItem
 import org.fdroid.ui.utils.MeteredConnectionDialog
 import org.fdroid.ui.utils.OfflineBar
 import org.fdroid.ui.utils.OnboardingCard
@@ -103,7 +113,9 @@ fun MyAppsList(
       state = lazyListState,
       contentPadding = paddingValues,
       modifier =
-        modifier.then(if (currentPackageName == null) Modifier else Modifier.selectableGroup()),
+        modifier
+          .reportLiquidScroll(lazyListState)
+          .then(if (currentPackageName == null) Modifier else Modifier.selectableGroup()),
     ) {
       // Updates header with Update all button
       if (
@@ -118,22 +130,27 @@ fun MyAppsList(
             message = stringResource(R.string.apps_updates_hint_text),
             buttonText = stringResource(R.string.hide),
             onGotIt = { myAppsInfo.actions.onUpdatesHintSeen() },
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.springListItem(this).padding(horizontal = 16.dp, vertical = 8.dp),
           )
         }
       } else if (!updatableApps.isNullOrEmpty()) {
         if (!myAppsInfo.model.networkState.isOnline) {
-          item(key = "OfflineBar", contentType = "offlineBar") { OfflineBar() }
+          item(key = "OfflineBar", contentType = "offlineBar") {
+            OfflineBar(modifier = Modifier.springListItem(this))
+          }
         }
         item(key = "A", contentType = "header") {
-          Row(verticalAlignment = Alignment.CenterVertically) {
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.springListItem(this),
+          ) {
             Text(
               text = stringResource(R.string.updates),
               style = MaterialTheme.typography.titleMedium,
               modifier = Modifier.padding(16.dp).weight(1f),
             )
             if (showUpdateAllButton)
-              Button(
+              LiquidGlassButton(
                 onClick = {
                   val installLambda = {
                     myAppsInfo.actions.updateAll()
@@ -154,23 +171,34 @@ fun MyAppsList(
         // List of updatable apps
         items(items = updatableApps, key = { it.packageName }, contentType = { "A" }) { app ->
           val isSelected = app.packageName == currentPackageName
+          val (meltModifier, openWithMelt) =
+            rememberLiquidMeltOpener(app.packageName) { onAppItemClick(app.packageName) }
           val interactionModifier =
             if (currentPackageName == null) {
-              Modifier.clickable(onClick = { onAppItemClick(app.packageName) })
+              Modifier.clickable(onClick = openWithMelt)
             } else {
               Modifier.selectable(
                 selected = isSelected,
-                onClick = { onAppItemClick(app.packageName) },
+                onClick = openWithMelt,
               )
             }
-          val modifier = Modifier.animateItem().then(interactionModifier)
-          UpdatableAppRow(app, isSelected, modifier)
+          val rowModifier =
+            Modifier.springListItem(this)
+              .padding(horizontal = 8.dp)
+              .then(meltModifier)
+              .liquidRowSquish()
+              .clip(LiquidGlassShapes.SmallCardShape)
+              .then(interactionModifier)
+          UpdatableAppRow(app, isSelected, rowModifier)
         }
       }
       // Apps currently installing header
       if (installingApps.isNotEmpty()) {
         item(key = "B", contentType = "header") {
-          Row(verticalAlignment = Alignment.CenterVertically) {
+          Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.springListItem(this),
+          ) {
             Text(
               text =
                 if (myAppsInfo.model.showClearInstallingAppsButton) {
@@ -182,7 +210,7 @@ fun MyAppsList(
               modifier = Modifier.padding(16.dp).weight(1f),
             )
             if (myAppsInfo.model.showClearInstallingAppsButton) {
-              TextButton(
+              LiquidGlassTextButton(
                 onClick = myAppsInfo.actions::clearInstallingApps,
                 modifier = Modifier.padding(end = 16.dp),
               ) {
@@ -194,17 +222,25 @@ fun MyAppsList(
         // List of currently installing apps
         items(items = installingApps, key = { it.packageName }, contentType = { "B" }) { app ->
           val isSelected = app.packageName == currentPackageName
+          val (meltModifier, openWithMelt) =
+            rememberLiquidMeltOpener(app.packageName) { onAppItemClick(app.packageName) }
           val interactionModifier =
             if (currentPackageName == null) {
-              Modifier.clickable(onClick = { onAppItemClick(app.packageName) })
+              Modifier.clickable(onClick = openWithMelt)
             } else {
               Modifier.selectable(
                 selected = isSelected,
-                onClick = { onAppItemClick(app.packageName) },
+                onClick = openWithMelt,
               )
             }
-          val modifier = Modifier.animateItem().then(interactionModifier)
-          InstallingAppRow(app, isSelected, modifier)
+          val rowModifier =
+            Modifier.springListItem(this)
+              .padding(horizontal = 8.dp)
+              .then(meltModifier)
+              .liquidRowSquish()
+              .clip(LiquidGlassShapes.SmallCardShape)
+              .then(interactionModifier)
+          InstallingAppRow(app, isSelected, rowModifier)
         }
       }
       // Apps with issues
@@ -214,13 +250,16 @@ fun MyAppsList(
           Text(
             text = stringResource(R.string.my_apps_header_apps_with_issue),
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.springListItem(this).padding(16.dp),
           )
         }
         if (myAppsInfo.model.showAppIssueHint)
           item(key = "C-hint", contentType = "hint") {
-            Card(
-              modifier = Modifier.fillMaxWidth().padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
+            LiquidGlassCard(
+              modifier =
+                Modifier.springListItem(this)
+                  .fillMaxWidth()
+                  .padding(bottom = 16.dp, start = 16.dp, end = 16.dp)
             ) {
               Column(modifier = Modifier.padding(top = 16.dp, start = 16.dp, end = 16.dp)) {
                 Text(
@@ -228,7 +267,9 @@ fun MyAppsList(
                   style = MaterialTheme.typography.bodyMedium,
                 )
                 Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-                  TextButton(onClick = { myAppsInfo.actions.onAppIssueHintSeen() }) {
+                  LiquidGlassTextButton(
+                    onClick = { myAppsInfo.actions.onAppIssueHintSeen() },
+                  ) {
                     Text(stringResource(R.string.got_it))
                   }
                 }
@@ -239,11 +280,13 @@ fun MyAppsList(
         items(items = appsWithIssue, key = { it.packageName }, contentType = { "C" }) { app ->
           val isSelected = app.packageName == currentPackageName
           var showNotAvailableDialog by remember { mutableStateOf(false) }
+          val (meltModifier, openWithMelt) =
+            rememberLiquidMeltOpener(app.packageName) { onAppItemClick(app.packageName) }
           val onClick = {
             if (app.issue is NotAvailable) {
               showNotAvailableDialog = true
             } else {
-              onAppItemClick(app.packageName)
+              openWithMelt()
             }
           }
           val interactionModifier =
@@ -256,8 +299,14 @@ fun MyAppsList(
             } else {
               Modifier.selectable(selected = isSelected, onClick = onClick)
             }
-          val modifier = Modifier.animateItem().then(interactionModifier)
-          InstalledAppRow(app, isSelected, modifier, app.issue)
+          val rowModifier =
+            Modifier.springListItem(this)
+              .padding(horizontal = 8.dp)
+              .then(meltModifier)
+              .liquidRowSquish()
+              .clip(LiquidGlassShapes.SmallCardShape)
+              .then(interactionModifier)
+          InstalledAppRow(app, isSelected, rowModifier, app.issue)
           // Dialogs
           val appToIgnore = showIssueIgnoreDialog
           if (appToIgnore != null)
@@ -279,22 +328,48 @@ fun MyAppsList(
           Text(
             text = stringResource(R.string.installed_apps__activity_title),
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(16.dp),
+            modifier = Modifier.springListItem(this).padding(16.dp),
           )
         }
         items(items = installedApps, key = { it.packageName }, contentType = { "D" }) { app ->
+          val haptic = LocalHapticFeedback.current
           val isSelected = app.packageName == currentPackageName
+          var menuExpanded by remember { mutableStateOf(false) }
+          val (meltModifier, openWithMelt) =
+            rememberLiquidMeltOpener(app.packageName) { onAppItemClick(app.packageName) }
           val interactionModifier =
             if (currentPackageName == null) {
-              Modifier.clickable(onClick = { onAppItemClick(app.packageName) })
+              Modifier.combinedClickable(
+                onClick = openWithMelt,
+                onLongClick = {
+                  haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                  menuExpanded = true
+                },
+              )
             } else {
               Modifier.selectable(
                 selected = isSelected,
-                onClick = { onAppItemClick(app.packageName) },
+                onClick = openWithMelt,
               )
             }
-          val modifier = Modifier.animateItem().then(interactionModifier)
-          InstalledAppRow(app, isSelected, modifier)
+          val rowModifier =
+            Modifier.springListItem(this)
+              .padding(horizontal = 8.dp)
+              .then(meltModifier)
+              .liquidRowSquish()
+              .clip(LiquidGlassShapes.SmallCardShape)
+              .then(interactionModifier)
+          Box(modifier = Modifier.fillMaxWidth()) {
+            InstalledAppRow(app, isSelected, rowModifier)
+            AppContextMenu(
+              expanded = menuExpanded,
+              packageName = app.packageName,
+              appName = app.name,
+              isInstalled = true,
+              onDismissRequest = { menuExpanded = false },
+              onOpenDetails = openWithMelt,
+            )
+          }
         }
       }
     }

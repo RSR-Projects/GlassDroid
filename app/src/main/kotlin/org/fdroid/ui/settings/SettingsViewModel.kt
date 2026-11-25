@@ -24,6 +24,8 @@ import mu.KotlinLogging
 import org.fdroid.R
 import org.fdroid.repo.RepoUpdateWorker
 import org.fdroid.settings.SettingsManager
+import org.fdroid.ui.glass.LiquidToastBus
+import org.fdroid.ui.glass.LiquidToastType
 import org.fdroid.ui.utils.applyNewTheme
 import org.fdroid.updates.AppUpdateWorker
 import org.fdroid.updates.UpdatesManager
@@ -75,16 +77,18 @@ constructor(
       val packageManager = application.packageManager
       val intent = packageManager.getLaunchIntentForPackage(application.packageName)
       val componentName = intent?.component
-      val mainIntent = Intent.makeRestartActivityTask(componentName)
-      application.startActivity(mainIntent)
-      getRuntime().exit(0)
+      if (componentName != null) {
+        val mainIntent = Intent.makeRestartActivityTask(componentName)
+        application.startActivity(mainIntent)
+        getRuntime().exit(0)
+      }
     }
   }
 
   fun onSaveLogcat(uri: Uri?) =
     viewModelScope.launch(Dispatchers.IO) {
       if (uri == null) {
-        sendToast(R.string.export_log_error)
+        sendToast(R.string.export_log_error, LiquidToastType.ERROR)
         return@launch
       }
       val command =
@@ -104,14 +108,21 @@ constructor(
             inputStream.copyTo(outputStream)
           }
         } ?: throw IOException("OutputStream was null")
-        sendToast(R.string.export_log_success)
+        sendToast(R.string.export_log_success, LiquidToastType.SUCCESS)
       } catch (e: Exception) {
         log.error(e) { "Error saving logcat " }
-        sendToast(R.string.export_log_error)
+        sendToast(R.string.export_log_error, LiquidToastType.ERROR)
       }
     }
 
-  private suspend fun sendToast(@StringRes s: Int, duration: Int = LENGTH_SHORT) {
-    withContext(Dispatchers.Main) { Toast.makeText(application, s, duration).show() }
+  private suspend fun sendToast(
+    @StringRes s: Int,
+    type: LiquidToastType = LiquidToastType.INFO,
+    duration: Int = LENGTH_SHORT,
+  ) {
+    withContext(Dispatchers.Main) {
+      val msg = application.getString(s)
+      LiquidToastBus.post(msg, type)
+    }
   }
 }

@@ -11,15 +11,8 @@ import androidx.compose.material.icons.automirrored.filled.ManageSearch
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.SortByAlpha
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -28,7 +21,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -42,6 +34,11 @@ import org.fdroid.database.AppListSortOrder.LAST_UPDATED
 import org.fdroid.download.NetworkState
 import org.fdroid.install.InstallConfirmationState
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidFloatingTopBar
+import org.fdroid.ui.glass.LiquidGlassDropdownMenu
+import org.fdroid.ui.glass.LiquidGlassDropdownMenuItem
+import org.fdroid.ui.glass.LiquidGlassRadioButton
+import org.fdroid.ui.glass.LiquidScaffold
 import org.fdroid.ui.navigation.NavigationKey
 import org.fdroid.ui.search.TopSearchBar
 import org.fdroid.ui.utils.BigLoadingIndicator
@@ -73,7 +70,6 @@ fun MyApps(
   val updatableApps = myAppsModel.appUpdates
   val appsWithIssue = myAppsModel.appsWithIssue
   val installedApps = myAppsModel.installedApps
-  val scrollBehavior = enterAlwaysScrollBehavior(rememberTopAppBarState())
   var searchActive by rememberSaveable { mutableStateOf(false) }
   val onSearchCleared = { myAppsInfo.actions.search("") }
   // when search bar is shown, back button closes it again
@@ -82,15 +78,20 @@ fun MyApps(
     onSearchCleared()
   }
   val onBackPressedDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
-  Scaffold(
+  LiquidScaffold(
     topBar = {
       if (searchActive) {
-        TopSearchBar(onSearch = myAppsInfo.actions::search, onSearchCleared = onSearchCleared) {
+        TopSearchBar(
+          showActions = false,
+          onSearch = myAppsInfo.actions::search,
+          onSearchCleared = onSearchCleared,
+        ) {
           onBackPressedDispatcher?.onBackPressed()
         }
-      } else
-        TopAppBar(
+      } else {
+        LiquidFloatingTopBar(
           title = { Text(stringResource(R.string.menu_apps_my), maxLines = 1) },
+          showActions = true,
           actions = {
             TopAppBarButton(
               imageVector = Icons.AutoMirrored.Default.ManageSearch,
@@ -103,15 +104,15 @@ fun MyApps(
               contentDescription = stringResource(R.string.sort_search),
               onClick = { sortByMenuExpanded = !sortByMenuExpanded },
             )
-            DropdownMenu(
+            LiquidGlassDropdownMenu(
               expanded = sortByMenuExpanded,
               onDismissRequest = { sortByMenuExpanded = false },
             ) {
-              DropdownMenuItem(
+              LiquidGlassDropdownMenuItem(
                 text = { Text(stringResource(R.string.sort_by_name)) },
                 leadingIcon = { Icon(Icons.Filled.SortByAlpha, null) },
                 trailingIcon = {
-                  RadioButton(
+                  LiquidGlassRadioButton(
                     selected = myAppsModel.sortOrder == AppListSortOrder.NAME,
                     onClick = null,
                   )
@@ -121,11 +122,14 @@ fun MyApps(
                   sortByMenuExpanded = false
                 },
               )
-              DropdownMenuItem(
+              LiquidGlassDropdownMenuItem(
                 text = { Text(stringResource(R.string.sort_by_latest)) },
                 leadingIcon = { Icon(Icons.Filled.AccessTime, null) },
                 trailingIcon = {
-                  RadioButton(selected = myAppsModel.sortOrder == LAST_UPDATED, onClick = null)
+                  LiquidGlassRadioButton(
+                    selected = myAppsModel.sortOrder == LAST_UPDATED,
+                    onClick = null,
+                  )
                 },
                 onClick = {
                   myAppsInfo.actions.changeSortOrder(LAST_UPDATED)
@@ -141,10 +145,10 @@ fun MyApps(
               )
             }
           },
-          scrollBehavior = scrollBehavior,
         )
+      }
     },
-    modifier = modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    modifier = modifier,
   ) { paddingValues ->
     val lazyListState = rememberLazyListState()
     if (updatableApps == null && installedApps == null) BigLoadingIndicator()

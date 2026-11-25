@@ -11,8 +11,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Preview
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.UpdateDisabled
-import androidx.compose.material3.Checkbox
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,6 +20,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import org.fdroid.R
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassCheckbox
+import org.fdroid.ui.glass.LiquidGlassDropdownMenuItem
 import org.fdroid.ui.utils.launchSafe
 import org.fdroid.ui.utils.startActivitySafe
 import org.fdroid.ui.utils.testApp
@@ -35,11 +35,11 @@ fun AppDetailsMenu(
   val res = LocalResources.current
   val context = LocalContext.current
   if (item.appPrefs != null)
-    DropdownMenuItem(
+    LiquidGlassDropdownMenuItem(
       leadingIcon = { Icon(Icons.Default.Preview, null) },
       text = { Text(stringResource(R.string.menu_release_channel_beta)) },
       trailingIcon = {
-        Checkbox(
+        LiquidGlassCheckbox(
           checked = item.allowsBetaVersions,
           onCheckedChange = null,
           enabled = !item.ignoresAllUpdates,
@@ -52,21 +52,21 @@ fun AppDetailsMenu(
       },
     )
   if (item.actions.ignoreAllUpdates != null)
-    DropdownMenuItem(
+    LiquidGlassDropdownMenuItem(
       leadingIcon = { Icon(Icons.Default.UpdateDisabled, null) },
       text = { Text(stringResource(R.string.menu_ignore_all)) },
-      trailingIcon = { Checkbox(item.ignoresAllUpdates, null) },
+      trailingIcon = { LiquidGlassCheckbox(item.ignoresAllUpdates, null) },
       onClick = {
         item.actions.ignoreAllUpdates()
         onDismiss()
       },
     )
   if (item.actions.ignoreThisUpdate != null)
-    DropdownMenuItem(
+    LiquidGlassDropdownMenuItem(
       leadingIcon = { Icon(Icons.Default.UpdateDisabled, null) },
       text = { Text(stringResource(R.string.menu_ignore_this)) },
       trailingIcon = {
-        Checkbox(
+        LiquidGlassCheckbox(
           checked = item.ignoresCurrentUpdate,
           onCheckedChange = null,
           enabled = !item.ignoresAllUpdates,
@@ -79,7 +79,7 @@ fun AppDetailsMenu(
       },
     )
   if (item.actions.shareApk != null)
-    DropdownMenuItem(
+    LiquidGlassDropdownMenuItem(
       leadingIcon = { Icon(Icons.Default.Share, null) },
       text = { Text(stringResource(R.string.menu_share_apk)) },
       onClick = {
@@ -90,7 +90,7 @@ fun AppDetailsMenu(
       },
     )
   if (item.actions.uninstallIntent != null)
-    DropdownMenuItem(
+    LiquidGlassDropdownMenuItem(
       leadingIcon = { Icon(Icons.Default.Delete, null) },
       text = { Text(stringResource(R.string.menu_uninstall)) },
       onClick = {

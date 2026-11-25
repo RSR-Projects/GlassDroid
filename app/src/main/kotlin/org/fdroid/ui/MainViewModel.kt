@@ -35,7 +35,7 @@ class MainViewModel
 constructor(
   @param:ApplicationContext private val context: Context,
   private val db: FDroidDatabase,
-  settingsManager: SettingsManager,
+  private val settingsManager: SettingsManager,
   updatesManager: UpdatesManager,
   private val onboardingManager: OnboardingManager,
   @param:IoDispatcher val coroutineScope: CoroutineScope,
@@ -53,6 +53,7 @@ constructor(
           numUpdatesFlow = updatesManager.numUpdates,
           appsWithIssuesFlow = updatesManager.appsWithIssues,
           showOnboardingFlow = onboardingManager.showMainOnboarding,
+          liquidGlassConfigFlow = settingsManager.liquidGlassConfigFlow,
         )
       }
     }
@@ -73,21 +74,36 @@ constructor(
     }
     // create shortcuts dynamically, to avoid static shortcuts launching with NEW_TASK intent flag
     // https://developer.android.com/develop/ui/compose/system/shortcuts/managing-shortcuts#start-one
-    val searchShortcut =
-      ShortcutInfoCompat.Builder(context, "search")
-        .setShortLabel(context.getString(R.string.menu_search))
-        .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher))
-        .setIntent(Intent(ACTION_SEARCH).apply { setPackage(context.packageName) })
-        .build()
-    val myAppsShortcut =
-      ShortcutInfoCompat.Builder(context, "my_apps")
-        .setShortLabel(context.getString(R.string.menu_apps_my))
-        .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher))
-        .setIntent(Intent(ACTION_MY_APPS).apply { setPackage(context.packageName) })
-        .build()
-    ShortcutManagerCompat.pushDynamicShortcut(context, searchShortcut)
-    ShortcutManagerCompat.pushDynamicShortcut(context, myAppsShortcut)
+    runCatching {
+      val searchShortcut =
+        ShortcutInfoCompat.Builder(context, "search")
+          .setShortLabel(context.getString(R.string.menu_search))
+          .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher))
+          .setIntent(Intent(ACTION_SEARCH).apply { setPackage(context.packageName) })
+          .build()
+      val myAppsShortcut =
+        ShortcutInfoCompat.Builder(context, "my_apps")
+          .setShortLabel(context.getString(R.string.menu_apps_my))
+          .setIcon(IconCompat.createWithResource(context, R.mipmap.ic_launcher))
+          .setIntent(Intent(ACTION_MY_APPS).apply { setPackage(context.packageName) })
+          .build()
+      ShortcutManagerCompat.pushDynamicShortcut(context, searchShortcut)
+      ShortcutManagerCompat.pushDynamicShortcut(context, myAppsShortcut)
+    }.onFailure { e ->
+      log.error(e) { "Failed to push dynamic shortcuts" }
+    }
   }
 
   fun onOnboardingSeen() = onboardingManager.onMainOnboardingSeen()
+
+  fun updateLiquidGlassConfig(config: org.fdroid.ui.glass.LiquidGlassConfig) =
+    settingsManager.updateLiquidGlassConfig(config)
+
+  fun resetGlassConfig() {
+    settingsManager.resetGlassConfig()
+  }
+
+  fun resetMotionConfig() {
+    settingsManager.resetMotionConfig()
+  }
 }

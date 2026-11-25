@@ -5,11 +5,9 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -22,6 +20,8 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import org.fdroid.R
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassCard
+import org.fdroid.ui.glass.LiquidGlassTextButton
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -54,7 +54,7 @@ fun OnboardingCard(
   buttonModifier: Modifier = Modifier,
   onGotIt: () -> Unit = {},
 ) {
-  ElevatedCard(modifier = modifier) {
+  LiquidGlassCard(modifier = modifier) {
     Text(
       text = title,
       style = MaterialTheme.typography.titleSmall,
@@ -66,7 +66,7 @@ fun OnboardingCard(
       modifier = Modifier.padding(horizontal = 16.dp),
     )
     Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
-      TextButton(
+      LiquidGlassTextButton(
         onClick = onGotIt,
         modifier = buttonModifier.padding(vertical = 8.dp, horizontal = 16.dp),
       ) {

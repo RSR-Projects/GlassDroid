@@ -4,7 +4,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipAnchorPosition.Companion.Below
@@ -15,6 +14,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import org.fdroid.R
+import org.fdroid.ui.glass.LiquidGlassIconButton
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)
@@ -29,7 +29,10 @@ fun TopAppBarButton(
     tooltip = { PlainTooltip { Text(contentDescription) } },
     state = rememberTooltipState(),
   ) {
-    IconButton(enabled = enabled, onClick = onClick) {
+    LiquidGlassIconButton(
+      enabled = enabled,
+      onClick = onClick,
+    ) {
       Icon(imageVector = imageVector, contentDescription = contentDescription)
     }
   }

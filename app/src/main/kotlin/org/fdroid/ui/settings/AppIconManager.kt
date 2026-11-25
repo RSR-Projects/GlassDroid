@@ -28,22 +28,35 @@ class AppIconManager @Inject constructor(@ApplicationContext private val context
 
   fun setAppIcon(appIcon: AppIcon) {
     log.debug { "setAppIcon(${appIcon::class.simpleName})" }
-    // enable new icon
-    pm.setComponentEnabledSetting(
-      appIcon.getComponentName(context),
-      COMPONENT_ENABLED_STATE_ENABLED,
-      DONT_KILL_APP,
-    )
+    val enabled =
+      runCatching {
+          pm.setComponentEnabledSetting(
+            appIcon.getComponentName(context),
+            COMPONENT_ENABLED_STATE_ENABLED,
+            DONT_KILL_APP,
+          )
+        }
+        .onFailure { e ->
+          log.error(e) { "Failed to enable app icon component ${appIcon.componentName}" }
+        }
+        .isSuccess
+    if (!enabled) return
+
     log.debug { "  ${appIcon::class.simpleName} enabled" }
     // disable all other icons
     appIcons.forEach {
       if (it != appIcon) {
-        pm.setComponentEnabledSetting(
-          it.getComponentName(context),
-          COMPONENT_ENABLED_STATE_DISABLED,
-          DONT_KILL_APP,
-        )
-        log.debug { "  ${it::class.simpleName} disabled" }
+        runCatching {
+            pm.setComponentEnabledSetting(
+              it.getComponentName(context),
+              COMPONENT_ENABLED_STATE_DISABLED,
+              DONT_KILL_APP,
+            )
+            log.debug { "  ${it::class.simpleName} disabled" }
+          }
+          .onFailure { e ->
+            log.error(e) { "Failed to disable app icon component ${it.componentName}" }
+          }
       }
     }
     _currentAppIcon.update { appIcon }
@@ -52,7 +65,12 @@ class AppIconManager @Inject constructor(@ApplicationContext private val context
   private fun getAppIconFromPackageManager(): AppIcon {
     val activeIcon = appIcons.firstOrNull {
       val componentName = it.getComponentName(context)
-      val componentEnabled = pm.getComponentEnabledSetting(componentName)
+      val componentEnabled =
+        runCatching { pm.getComponentEnabledSetting(componentName) }
+          .getOrElse { e ->
+            log.error(e) { "Failed to inspect app icon component $componentName" }
+            COMPONENT_ENABLED_STATE_DEFAULT
+          }
 
       log.debug { "Found $componentName with state of $componentEnabled" }
       if (it == AppIcon.Default && componentEnabled == COMPONENT_ENABLED_STATE_DEFAULT) {
@@ -61,11 +79,6 @@ class AppIconManager @Inject constructor(@ApplicationContext private val context
       componentEnabled == COMPONENT_ENABLED_STATE_ENABLED
     }
 
-    return if (activeIcon == null) {
-      setAppIcon(AppIcon.Default)
-      AppIcon.Default
-    } else {
-      activeIcon
-    }
+    return activeIcon ?: AppIcon.Default
   }
 }

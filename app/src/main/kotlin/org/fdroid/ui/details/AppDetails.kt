@@ -26,20 +26,13 @@ import androidx.compose.material.icons.filled.Mail
 import androidx.compose.material.icons.filled.OndemandVideo
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Translate
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -81,6 +74,17 @@ import org.fdroid.LocaleChooser.getBestLocale
 import org.fdroid.R
 import org.fdroid.install.InstallState
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassButton
+import org.fdroid.ui.glass.LiquidGlassCard
+import org.fdroid.ui.glass.LiquidGlassDialog
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidGlassTextButton
+import org.fdroid.ui.glass.LiquidScaffold
+import org.fdroid.ui.glass.LiquidSprings
+import org.fdroid.ui.glass.LocalLiquidGlassConfig
+import org.fdroid.ui.glass.appHeroSharedBounds
+import org.fdroid.ui.glass.liquidMeltDestination
+import org.fdroid.ui.glass.reportLiquidScroll
 import org.fdroid.ui.icons.License
 import org.fdroid.ui.lists.AppListType
 import org.fdroid.ui.navigation.NavigationKey
@@ -98,14 +102,13 @@ fun AppDetails(
   onBackNav: (() -> Unit)?,
   modifier: Modifier = Modifier,
 ) {
-  val topAppBarState = rememberTopAppBarState()
   var showInstallError by remember { mutableStateOf(false) }
-  val scrollBehavior = TopAppBarDefaults.enterAlwaysScrollBehavior(topAppBarState)
   if (item == null) BigLoadingIndicator()
   else {
-    Scaffold(
-      topBar = { AppDetailsTopAppBar(item, topAppBarState, scrollBehavior, onBackNav) },
-      modifier = Modifier.nestedScroll(scrollBehavior.nestedScrollConnection),
+    val scrollState = rememberScrollState()
+    val showFloatingTitle by remember { derivedStateOf { scrollState.value > 220 } }
+    LiquidScaffold(
+      topBar = { AppDetailsTopAppBar(item, showFloatingTitle, onBackNav) },
     ) { innerPadding ->
       if (item is NotFoundAppDetailsItem) {
         Box(
@@ -114,7 +117,7 @@ fun AppDetails(
         ) {
           Text(stringResource(R.string.no_such_app))
         }
-        return@Scaffold
+        return@LiquidScaffold
       }
       item as LoadedAppDetailsItem
       // react to install state changes
@@ -147,11 +150,16 @@ fun AppDetails(
         }
       val hintAnchor = rememberHintAnchorState(hint)
       val coroutineScope = rememberCoroutineScope()
-      val scrollState = rememberScrollState()
       var size by remember { mutableStateOf(IntSize.Zero) }
       Column(
         modifier =
           modifier
+            .appHeroSharedBounds(
+              key = "app_card_${item.app.packageName}",
+              clipShape = LiquidGlassShapes.CardShape,
+            )
+            .liquidMeltDestination(item.app.packageName)
+            .reportLiquidScroll(scrollState)
             .verticalScroll(scrollState)
             .fillMaxWidth()
             .padding(
@@ -162,19 +170,24 @@ fun AppDetails(
             .onGloballyPositioned { coordinates -> size = coordinates.size }
       ) {
         // Header is taking care of top innerPadding
-        AppDetailsHeader(item, onNav, innerPadding)
-        AnimatedVisibility(item.showWarnings) {
+        AppDetailsHeader(
+          item = item,
+          onNav = onNav,
+          innerPadding = innerPadding,
+          scrollOffsetPx = { scrollState.value.toFloat() },
+        )
+        AnimatedVisibility(
+          visible = item.showWarnings,
+          enter = LiquidSprings.expandEnter(),
+          exit = LiquidSprings.expandExit(),
+        ) {
           AppDetailsWarnings(item, Modifier.padding(horizontal = 16.dp))
         }
         // What's New
         if (
           item.installedVersionCode != null && (item.whatsNew != null || item.app.changelog != null)
         ) {
-          ElevatedCard(
-            colors =
-              CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceContainerHighest
-              ),
+          LiquidGlassCard(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
           ) {
             Text(
@@ -233,10 +246,11 @@ fun AppDetails(
               mutableStateOf(!allowExpand)
             }
           val htmlDescription = AnnotatedString.fromHtml(description)
+          val glassConfig = LocalLiquidGlassConfig.current
           Column(
             modifier =
               Modifier.fillMaxWidth()
-                .animateContentSize()
+                .animateContentSize(animationSpec = glassConfig.expandSizeSpring())
                 .padding(horizontal = 16.dp)
                 .padding(top = 8.dp)
           ) {
@@ -250,7 +264,10 @@ fun AppDetails(
               )
             }
             if (allowExpand) {
-              TextButton(onClick = { descriptionExpanded = !descriptionExpanded }) {
+              LiquidGlassTextButton(
+                onClick = { descriptionExpanded = !descriptionExpanded },
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp),
+              ) {
                 Text(
                   text =
                     if (descriptionExpanded) {
@@ -260,7 +277,6 @@ fun AppDetails(
                     },
                   textAlign = Center,
                   maxLines = if (descriptionExpanded) Int.MAX_VALUE else 3,
-                  modifier = Modifier.fillMaxWidth(),
                 )
               }
             }
@@ -268,8 +284,7 @@ fun AppDetails(
         }
         // Donate card
         if (item.showDonate) {
-          ElevatedCard(
-            colors = CardDefaults.elevatedCardColors(),
+          LiquidGlassCard(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
           ) {
             Text(
@@ -388,7 +403,7 @@ fun AppDetails(
         if (item.authorHasMoreThanOneApp) {
           val authorName = item.app.authorName!!
           val title = stringResource(R.string.app_list_author, authorName)
-          Button(
+          LiquidGlassButton(
             onClick = { onNav(NavigationKey.AppList(AppListType.Author(title, authorName))) },
             modifier = Modifier.align(CenterHorizontally).padding(bottom = 16.dp),
           ) {
@@ -399,9 +414,8 @@ fun AppDetails(
       }
     }
     if (item is LoadedAppDetailsItem && showInstallError && item.installState is InstallState.Error)
-      AlertDialog(
+      LiquidGlassDialog(
         onDismissRequest = { showInstallError = false },
-        containerColor = MaterialTheme.colorScheme.errorContainer,
         title = { Text(stringResource(R.string.install_error_notify_title, item.name)) },
         text = {
           if (item.installState.msg == null) {
@@ -422,7 +436,9 @@ fun AppDetails(
           }
         },
         confirmButton = {
-          TextButton(onClick = { showInstallError = false }) { Text(stringResource(R.string.ok)) }
+          LiquidGlassTextButton(onClick = { showInstallError = false }) {
+            Text(stringResource(R.string.ok))
+          }
         },
       )
   }

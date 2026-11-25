@@ -39,6 +39,7 @@
         android:enableOnBackInvokedCallback="true"
         android:fullBackupContent="@xml/backup_rules"
         android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round"
         android:label="@string/app_name"
         android:localeConfig="@xml/locales_config"
         android:memtagMode="async"
@@ -54,7 +55,10 @@
             android:windowSoftInputMode="adjustResize">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
+                <category android:name="android.intent.category.APP_MARKET" />
             </intent-filter>
             <intent-filter>
                 <action android:name="org.fdroid.action.SEARCH" />
@@ -116,43 +120,20 @@
             </intent-filter>
         </activity>
 
-        <!-- The main alias providing the normal launcher icon and label -->
+        <!-- Compatibility alias for existing pinned home screen shortcuts -->
         <activity-alias
             android:name=".IconActivity"
             android:exported="true"
+            android:icon="@mipmap/ic_launcher"
+            android:roundIcon="@mipmap/ic_launcher_round"
+            android:label="@string/app_name"
             android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.APP_MARKET" />
+                <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity-alias>
 
-        <!-- The calculator alias providing the calculator icon and label, initially disabled -->
-        <activity-alias
-            android:name=".IconCalculatorActivity"
-            android:enabled="false"
-            android:exported="true"
-            android:icon="@mipmap/ic_calculator"
-            android:label="@string/icon_calculator"
-            android:targetActivity=".MainActivity">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-                <category android:name="android.intent.category.APP_MARKET" />
-            </intent-filter>
-        </activity-alias>
-
-        <activity
-            android:name="org.fdroid.ui.crash.CrashActivity"
-            android:excludeFromRecents="true"
-            android:exported="false"
-            android:finishOnTaskLaunch="true"
-            android:launchMode="singleInstance"
-            android:process=":acra"
-            android:windowSoftInputMode="adjustResize" />
         <activity
             android:name="com.journeyapps.barcodescanner.CaptureActivity"
             android:exported="false"

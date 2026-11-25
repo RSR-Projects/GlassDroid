@@ -1,6 +1,8 @@
 package org.fdroid.ui.search
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -14,15 +16,21 @@ import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.windowInsetsBottomHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
@@ -33,6 +41,14 @@ import org.fdroid.search.SearchHelper.isSearchable
 import org.fdroid.ui.categories.CategoryChip
 import org.fdroid.ui.categories.CategoryItem
 import org.fdroid.ui.categories.ChipFlowRow
+import org.fdroid.ui.glass.AppContextMenu
+import org.fdroid.ui.glass.LiquidGlassDivider
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.liquidRowSquish
+import org.fdroid.ui.glass.rememberLiquidMeltOpener
+import org.fdroid.ui.glass.reportLiquidScroll
+import org.fdroid.ui.glass.springListItem
+import org.fdroid.ui.glass.staggeredLiquidEntrance
 import org.fdroid.ui.lists.AppListItem
 import org.fdroid.ui.lists.AppListRow
 import org.fdroid.ui.lists.AppListType
@@ -73,7 +89,13 @@ fun SearchResults(
           )
         }
         if (!categories.isNullOrEmpty()) {
-          item { CategoriesFlowRow(categories, onNav, modifier = Modifier.padding(top = 16.dp)) }
+          item(key = "categories") {
+            CategoriesFlowRow(
+              categories = categories,
+              onNav = onNav,
+              modifier = Modifier.springListItem(this).padding(top = 16.dp),
+            )
+          }
         }
         item { Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars)) }
         item { Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.ime)) }
@@ -91,21 +113,29 @@ fun SearchResults(
       )
     }
   } else {
+    val haptic = LocalHapticFeedback.current
     LazyColumn(
       state = listState,
       contentPadding = paddingValues,
-      modifier = modifier.fillMaxSize(),
+      modifier = modifier.fillMaxSize().reportLiquidScroll(listState),
     ) {
       if (searchResults.categories.isNotEmpty()) {
         item(key = "categories", contentType = "category") {
-          CategoriesFlowRow(searchResults.categories, onNav)
+          CategoriesFlowRow(
+            categories = searchResults.categories,
+            onNav = onNav,
+            modifier = Modifier.springListItem(this),
+          )
         }
       }
       if (searchResults.apps.isNotEmpty()) {
         item(key = "appsHeader", contentType = "appsHeader") {
-          Column {
+          Column(modifier = Modifier.springListItem(this)) {
             if (searchResults.categories.isNotEmpty()) {
-              HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp))
+              LiquidGlassDivider(
+                color = MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.45f),
+                modifier = Modifier.padding(vertical = 8.dp, horizontal = 16.dp),
+              )
             }
             Text(
               text = stringResource(R.string.apps),
@@ -115,16 +145,49 @@ fun SearchResults(
           }
         }
       }
-      items(searchResults.apps, key = { it.packageName }, contentType = { "app" }) { item ->
-        AppListRow(
-          item = item,
-          isSelected = false,
-          showLastUpdated = true,
+      itemsIndexed(
+        searchResults.apps,
+        key = { _, it -> it.packageName },
+        contentType = { _, _ -> "app" },
+      ) { index, item ->
+        var menuExpanded by remember { mutableStateOf(false) }
+        val (meltModifier, openWithMelt) =
+          rememberLiquidMeltOpener(item.packageName) {
+            onNav(NavigationKey.AppDetails(item.packageName))
+          }
+        Box(
           modifier =
-            Modifier.fillMaxWidth().animateItem().clickable {
-              onNav(NavigationKey.AppDetails(item.packageName))
-            },
-        )
+            Modifier.fillMaxWidth()
+              .springListItem(this)
+              .staggeredLiquidEntrance(key = item.packageName, index = index),
+        ) {
+          AppListRow(
+            item = item,
+            isSelected = false,
+            showLastUpdated = true,
+            modifier =
+              Modifier.fillMaxWidth()
+                .padding(horizontal = 8.dp)
+                .then(meltModifier)
+                .liquidRowSquish()
+                .clip(LiquidGlassShapes.SmallCardShape)
+                .combinedClickable(
+                  onClick = openWithMelt,
+                  onLongClick = {
+                    haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                    menuExpanded = true
+                  },
+                ),
+          )
+          AppContextMenu(
+            expanded = menuExpanded,
+            packageName = item.packageName,
+            appName = item.name,
+            isInstalled = item.isInstalled,
+            onDismissRequest = { menuExpanded = false },
+            onOpenDetails = openWithMelt,
+          )
+        }
       }
       item { Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.systemBars)) }
       item { Spacer(Modifier.windowInsetsBottomHeight(WindowInsets.ime)) }

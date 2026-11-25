@@ -7,6 +7,7 @@ import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
 import androidx.compose.material3.adaptive.layout.calculatePaneScaffoldDirective
 import androidx.compose.material3.adaptive.navigation3.ListDetailSceneStrategy
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -18,12 +19,15 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation3.runtime.NavEntry
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
+import androidx.navigation3.ui.LocalNavAnimatedContentScope
 import org.fdroid.search.SavedSearch
 import org.fdroid.ui.apps.myAppsEntry
 import org.fdroid.ui.categories.CategoryItem
 import org.fdroid.ui.details.NoAppSelected
 import org.fdroid.ui.details.appDetailsEntry
 import org.fdroid.ui.discover.discoverEntry
+import org.fdroid.ui.glass.LiquidGlassCustomizer
+import org.fdroid.ui.glass.LocalAppAnimatedContentScope
 import org.fdroid.ui.history.History
 import org.fdroid.ui.history.HistoryViewModel
 import org.fdroid.ui.lists.appListEntry
@@ -66,6 +70,8 @@ fun Main(onListeningForIntent: () -> Unit = {}) {
     }
   val isBigScreen = directive.maxHorizontalPartitions > 1
   var showSearchKeyboard by remember { mutableStateOf(false) }
+  val mainViewModel = hiltViewModel<MainViewModel>()
+  val mainModel by mainViewModel.mainModel.collectAsStateWithLifecycle()
 
   val entryProvider: (NavKey) -> NavEntry<NavKey> = entryProvider {
     discoverEntry(navigator)
@@ -76,28 +82,30 @@ fun Main(onListeningForIntent: () -> Unit = {}) {
     entry<NavigationKey.Search>(
       metadata = ListDetailSceneStrategy.listPane("appdetails") { NoAppSelected() }
     ) {
-      val viewModel = hiltViewModel<SearchViewModel>()
-      GlobalSearch(
-        info =
-          object : SearchInfo {
-            override val searchResults: SearchResults? =
-              viewModel.searchResults.collectAsStateWithLifecycle().value
-            override val savedSearches: List<SavedSearch>? =
-              viewModel.savedSearchesFlow.collectAsStateWithLifecycle().value
-            override val categories: List<CategoryItem>? =
-              viewModel.categories.collectAsStateWithLifecycle(null).value
-            override val autoShowKeyboard: Boolean =
-              viewModel.autoShowKeyboard.collectAsStateWithLifecycle().value
-            override val showKeyboard: Boolean = showSearchKeyboard
-            override val actions: SearchActions = viewModel
+      CompositionLocalProvider(LocalAppAnimatedContentScope provides LocalNavAnimatedContentScope.current) {
+        val viewModel = hiltViewModel<SearchViewModel>()
+        GlobalSearch(
+          info =
+            object : SearchInfo {
+              override val searchResults: SearchResults? =
+                viewModel.searchResults.collectAsStateWithLifecycle().value
+              override val savedSearches: List<SavedSearch>? =
+                viewModel.savedSearchesFlow.collectAsStateWithLifecycle().value
+              override val categories: List<CategoryItem>? =
+                viewModel.categories.collectAsStateWithLifecycle(null).value
+              override val autoShowKeyboard: Boolean =
+                viewModel.autoShowKeyboard.collectAsStateWithLifecycle().value
+              override val showKeyboard: Boolean = showSearchKeyboard
+              override val actions: SearchActions = viewModel
 
-            override fun onKeyboardShown() {
-              showSearchKeyboard = false
-            }
-          },
-        onNav = { navKey -> navigator.navigate(navKey) },
-        onBack = { navigator.goBack() },
-      )
+              override fun onKeyboardShown() {
+                showSearchKeyboard = false
+              }
+            },
+          onNav = { navKey -> navigator.navigate(navKey) },
+          onBack = { navigator.goBack() },
+        )
+      }
     }
     entry(NavigationKey.Settings) {
       val viewModel = hiltViewModel<SettingsViewModel>()
@@ -108,6 +116,18 @@ fun Main(onListeningForIntent: () -> Unit = {}) {
           viewModel.onSaveLogcat(it)
           navigator.goBack()
         },
+        onOpenLiquidGlassCustomizer = {
+          navigator.navigate(NavigationKey.LiquidGlassCustomizer)
+        },
+        onBackClicked = { navigator.goBack() },
+      )
+    }
+    entry(NavigationKey.LiquidGlassCustomizer) {
+      LiquidGlassCustomizer(
+        config = mainModel.liquidGlassConfig,
+        onConfigChange = mainViewModel::updateLiquidGlassConfig,
+        onResetGlass = mainViewModel::resetGlassConfig,
+        onResetMotion = mainViewModel::resetMotionConfig,
         onBackClicked = { navigator.goBack() },
       )
     }
@@ -133,15 +153,14 @@ fun Main(onListeningForIntent: () -> Unit = {}) {
     // flavor specific navigation destinations go here
     extraNavigationEntries(navigator)
   }
-  val viewModel = hiltViewModel<MainViewModel>()
   MainContent(
-    model = viewModel.mainModel.collectAsStateWithLifecycle().value,
+    model = mainModel,
     navEntries = navigationState.toEntries(entryProvider),
     directive = directive,
     isBigScreen = isBigScreen,
     showBottomBar = !isBigScreen && navigator.last is MainNavKey,
     currentNavKey = navigationState.topLevelRoute,
-    onOnboardingSeen = viewModel::onOnboardingSeen,
+    onOnboardingSeen = mainViewModel::onOnboardingSeen,
     onNav = {
       // don't navigate, if we are already on the selected top level route
       if (navigationState.topLevelRoute == it) {

@@ -12,6 +12,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -45,11 +46,32 @@ import org.fdroid.settings.SettingsConstants.PREF_ERROR_CACHE_DEFAULT
 import org.fdroid.settings.SettingsConstants.PREF_KEY_APP_AUTO_UPDATES
 import org.fdroid.settings.SettingsConstants.PREF_KEY_APP_LIST_SORT_ORDER
 import org.fdroid.settings.SettingsConstants.PREF_KEY_DYNAMIC_COLORS
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_BLUR
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_BRIGHTNESS
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_CHROMATIC
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_HIGHLIGHT
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_PROFILE
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_REDUCED_FX
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_REFRACTION_AMOUNT
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_REFRACTION_HEIGHT
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_TINT
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_TINT_COLOR
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_TRANSPARENCY
+import org.fdroid.settings.SettingsConstants.PREF_KEY_GLASS_VIBRANCY
 import org.fdroid.settings.SettingsConstants.PREF_KEY_IGNORED_APP_ISSUES
 import org.fdroid.settings.SettingsConstants.PREF_KEY_INSTALL_HISTORY
 import org.fdroid.settings.SettingsConstants.PREF_KEY_LAST_DB_REPAIR_CHECK
 import org.fdroid.settings.SettingsConstants.PREF_KEY_LAST_UPDATE_CHECK
 import org.fdroid.settings.SettingsConstants.PREF_KEY_MIRROR_CHOOSER
+import org.fdroid.settings.SettingsConstants.PREF_KEY_MOTION_BOUNCE
+import org.fdroid.settings.SettingsConstants.PREF_KEY_MOTION_DRAG_STRETCH
+import org.fdroid.settings.SettingsConstants.PREF_KEY_MOTION_ENABLED
+import org.fdroid.settings.SettingsConstants.PREF_KEY_MOTION_INTENSITY
+import org.fdroid.settings.SettingsConstants.PREF_KEY_MOTION_LONG_PRESS_BLOOM
+import org.fdroid.settings.SettingsConstants.PREF_KEY_MOTION_PRESS_DEPTH
+import org.fdroid.settings.SettingsConstants.PREF_KEY_MOTION_PROFILE
+import org.fdroid.settings.SettingsConstants.PREF_KEY_MOTION_RELEASE_JIGGLE
+import org.fdroid.settings.SettingsConstants.PREF_KEY_MOTION_SPEED
 import org.fdroid.settings.SettingsConstants.PREF_KEY_MY_APPS_SORT_ORDER
 import org.fdroid.settings.SettingsConstants.PREF_KEY_PREVENT_SCREENSHOTS
 import org.fdroid.settings.SettingsConstants.PREF_KEY_PRIVILEGED_EXTENSION_NEEDS_MIGRATION
@@ -64,6 +86,10 @@ import org.fdroid.settings.SettingsConstants.PREF_USE_DNS_CACHE_DEFAULT
 import org.fdroid.settings.SettingsConstants.RepoUpdateValues
 import org.fdroid.settings.SettingsConstants.getAppListSortOrder
 import org.fdroid.settings.SettingsConstants.toSettings
+import org.fdroid.ui.glass.GlassProfile
+import org.fdroid.ui.glass.GlassTintPreset
+import org.fdroid.ui.glass.LiquidGlassConfig
+import org.fdroid.ui.glass.MotionProfile
 
 @Singleton
 class SettingsManager @Inject constructor(@param:ApplicationContext private val context: Context) {
@@ -247,6 +273,90 @@ class SettingsManager @Inject constructor(@param:ApplicationContext private val 
     set(value) {
       return prefs.edit { putBoolean(PREF_KEY_PRIVILEGED_EXTENSION_NEEDS_MIGRATION, value) }
     }
+
+  private val _liquidGlassConfigFlow by lazy { MutableStateFlow(loadLiquidGlassConfig()) }
+  val liquidGlassConfigFlow: StateFlow<LiquidGlassConfig>
+    get() = _liquidGlassConfigFlow.asStateFlow()
+
+  private fun loadLiquidGlassConfig(): LiquidGlassConfig {
+    val defaults = LiquidGlassConfig()
+    val glassProfile =
+      GlassProfile.fromPrefString(prefs.getString(PREF_KEY_GLASS_PROFILE, defaults.glassProfile.name))
+        ?: defaults.glassProfile
+    val glassTint =
+      GlassTintPreset.fromPrefString(prefs.getString(PREF_KEY_GLASS_TINT_COLOR, defaults.glassTint.name))
+    val motionProfile =
+      prefs.getString(PREF_KEY_MOTION_PROFILE, defaults.motionProfile.name)?.let {
+        runCatching { MotionProfile.valueOf(it) }.getOrNull()
+      } ?: defaults.motionProfile
+    return LiquidGlassConfig(
+      glassProfile = glassProfile,
+      glassTint = glassTint,
+      blurScale = prefs.getFloat(PREF_KEY_GLASS_BLUR, defaults.blurScale),
+      transparency = prefs.getFloat(PREF_KEY_GLASS_TRANSPARENCY, defaults.transparency),
+      refractionHeightScale =
+        prefs.getFloat(PREF_KEY_GLASS_REFRACTION_HEIGHT, defaults.refractionHeightScale),
+      refractionAmountScale =
+        prefs.getFloat(PREF_KEY_GLASS_REFRACTION_AMOUNT, defaults.refractionAmountScale),
+      tintStrength = prefs.getFloat(PREF_KEY_GLASS_TINT, defaults.tintStrength),
+      highlightIntensity = prefs.getFloat(PREF_KEY_GLASS_HIGHLIGHT, defaults.highlightIntensity),
+      vibrancyScale = prefs.getFloat(PREF_KEY_GLASS_VIBRANCY, defaults.vibrancyScale),
+      brightness = prefs.getFloat(PREF_KEY_GLASS_BRIGHTNESS, defaults.brightness),
+      chromaticAberration =
+        prefs.getBoolean(PREF_KEY_GLASS_CHROMATIC, defaults.chromaticAberration),
+      reducedVisualEffects =
+        prefs.getBoolean(PREF_KEY_GLASS_REDUCED_FX, defaults.reducedVisualEffects),
+      motionProfile = motionProfile,
+      animationsEnabled = prefs.getBoolean(PREF_KEY_MOTION_ENABLED, defaults.animationsEnabled),
+      animationIntensity = prefs.getFloat(PREF_KEY_MOTION_INTENSITY, defaults.animationIntensity),
+      bounce = prefs.getFloat(PREF_KEY_MOTION_BOUNCE, defaults.bounce),
+      speed = prefs.getFloat(PREF_KEY_MOTION_SPEED, defaults.speed),
+      pressDepth = prefs.getFloat(PREF_KEY_MOTION_PRESS_DEPTH, defaults.pressDepth),
+      releaseJiggle = prefs.getFloat(PREF_KEY_MOTION_RELEASE_JIGGLE, defaults.releaseJiggle),
+      dragStretch = prefs.getFloat(PREF_KEY_MOTION_DRAG_STRETCH, defaults.dragStretch),
+      longPressBloom =
+        prefs.getFloat(PREF_KEY_MOTION_LONG_PRESS_BLOOM, defaults.longPressBloom),
+    )
+  }
+
+  fun updateLiquidGlassConfig(config: LiquidGlassConfig) {
+    _liquidGlassConfigFlow.value = config
+    prefs.edit {
+      putString(PREF_KEY_GLASS_PROFILE, config.glassProfile.name)
+      putString(PREF_KEY_GLASS_TINT_COLOR, config.glassTint.name)
+      putFloat(PREF_KEY_GLASS_BLUR, config.blurScale)
+      putFloat(PREF_KEY_GLASS_TRANSPARENCY, config.transparency)
+      putFloat(PREF_KEY_GLASS_REFRACTION_HEIGHT, config.refractionHeightScale)
+      putFloat(PREF_KEY_GLASS_REFRACTION_AMOUNT, config.refractionAmountScale)
+      putFloat(PREF_KEY_GLASS_TINT, config.tintStrength)
+      putFloat(PREF_KEY_GLASS_HIGHLIGHT, config.highlightIntensity)
+      putFloat(PREF_KEY_GLASS_VIBRANCY, config.vibrancyScale)
+      putFloat(PREF_KEY_GLASS_BRIGHTNESS, config.brightness)
+      putBoolean(PREF_KEY_GLASS_CHROMATIC, config.chromaticAberration)
+      putBoolean(PREF_KEY_GLASS_REDUCED_FX, config.reducedVisualEffects)
+      putString(PREF_KEY_MOTION_PROFILE, config.motionProfile.name)
+      putBoolean(PREF_KEY_MOTION_ENABLED, config.animationsEnabled)
+      putFloat(PREF_KEY_MOTION_INTENSITY, config.animationIntensity)
+      putFloat(PREF_KEY_MOTION_BOUNCE, config.bounce)
+      putFloat(PREF_KEY_MOTION_SPEED, config.speed)
+      putFloat(PREF_KEY_MOTION_PRESS_DEPTH, config.pressDepth)
+      putFloat(PREF_KEY_MOTION_RELEASE_JIGGLE, config.releaseJiggle)
+      putFloat(PREF_KEY_MOTION_DRAG_STRETCH, config.dragStretch)
+      putFloat(PREF_KEY_MOTION_LONG_PRESS_BLOOM, config.longPressBloom)
+    }
+  }
+
+  fun resetGlassConfig(): LiquidGlassConfig {
+    val updated = _liquidGlassConfigFlow.value.resetGlass()
+    updateLiquidGlassConfig(updated)
+    return updated
+  }
+
+  fun resetMotionConfig(): LiquidGlassConfig {
+    val updated = _liquidGlassConfigFlow.value.resetMotion()
+    updateLiquidGlassConfig(updated)
+    return updated
+  }
 
   init {
     // update settings migration from 1.x can be removed after sufficient time has passed

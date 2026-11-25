@@ -16,23 +16,15 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.absoluteOffset
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Cancel
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.ProgressIndicatorDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -78,6 +70,13 @@ import org.fdroid.install.InstallState
 import org.fdroid.ui.FDroidContent
 import org.fdroid.ui.categories.ChipFlowRow
 import org.fdroid.ui.categories.chipHeight
+import org.fdroid.ui.glass.LiquidDownloadControl
+import org.fdroid.ui.glass.LiquidGlassBadgedBox
+import org.fdroid.ui.glass.LiquidGlassChip
+import org.fdroid.ui.glass.LiquidGlassLinearProgress
+import org.fdroid.ui.glass.LiquidSprings
+import org.fdroid.ui.glass.appHeroSharedElement
+import org.fdroid.ui.glass.liquidParallax
 import org.fdroid.ui.lists.AppListType
 import org.fdroid.ui.navigation.NavigationKey
 import org.fdroid.ui.utils.AsyncShimmerImage
@@ -86,7 +85,6 @@ import org.fdroid.ui.utils.MeteredConnectionDialog
 import org.fdroid.ui.utils.OfflineBar
 import org.fdroid.ui.utils.asRelativeTimeString
 import org.fdroid.ui.utils.getRepository
-import org.fdroid.ui.utils.startActivitySafe
 import org.fdroid.ui.utils.testApp
 
 @Composable
@@ -97,6 +95,7 @@ fun AppDetailsHeader(
   onNav: (NavigationKey) -> Unit,
   innerPadding: PaddingValues,
   now: Long = System.currentTimeMillis(),
+  scrollOffsetPx: () -> Float = { 0f },
 ) {
   val context = LocalContext.current
   Box {
@@ -112,6 +111,7 @@ fun AppDetailsHeader(
           Modifier.fillMaxWidth()
             .animateContentSize()
             .height(if (showFeatureGraphic) 196.dp else 0.dp)
+            .liquidParallax(scrollOffsetPx, factor = 0.24f, maxOffsetPx = 56f)
             .graphicsLayer { alpha = 0.9f }
             .drawWithContent {
               val colors = listOf(Color.Black, Color.Transparent)
@@ -123,8 +123,12 @@ fun AppDetailsHeader(
     }
   }
   var showMeteredDialog by remember { mutableStateOf(false) }
-  AnimatedVisibility(item.mainButtonState == MainButtonState.LOADING) {
-    LinearWavyProgressIndicator(modifier = Modifier.fillMaxWidth().absoluteOffset(y = (-8).dp))
+  AnimatedVisibility(
+    visible = item.mainButtonState == MainButtonState.LOADING,
+    enter = LiquidSprings.expandEnter(),
+    exit = LiquidSprings.expandExit(),
+  ) {
+    LiquidGlassLinearProgress(modifier = Modifier.fillMaxWidth().absoluteOffset(y = (-8).dp))
   }
   // Offline bar, if no internet
   if (!item.networkState.isOnline) {
@@ -137,16 +141,17 @@ fun AppDetailsHeader(
     horizontalArrangement = spacedBy(16.dp),
     verticalAlignment = CenterVertically,
   ) {
-    BadgedBox(badge = { if (item.installedVersionCode != null) InstalledBadge() }) {
+    LiquidGlassBadgedBox(badge = { if (item.installedVersionCode != null) InstalledBadge() }) {
       AsyncShimmerImage(
         model = item.icon,
         contentDescription = "",
         contentScale = ContentScale.Crop,
         error = painterResource(R.drawable.ic_repo_app_default),
         modifier =
-          Modifier.size(64.dp).clip(MaterialTheme.shapes.large).semantics {
-            hideFromAccessibility()
-          },
+          Modifier.size(64.dp)
+            .appHeroSharedElement("app_icon_${item.app.packageName}")
+            .clip(MaterialTheme.shapes.large)
+            .semantics { hideFromAccessibility() },
       )
     }
     Column {
@@ -156,6 +161,7 @@ fun AppDetailsHeader(
           style = MaterialTheme.typography.headlineSmallEmphasized,
           fontWeight = FontWeight.Medium,
           lineHeight = 26.sp,
+          modifier = Modifier.appHeroSharedElement("app_title_${item.app.packageName}"),
         )
       }
       item.app.authorName?.let { authorName ->
@@ -177,7 +183,7 @@ fun AppDetailsHeader(
                       TextLinkStyles(
                         style =
                           SpanStyle(
-                            color = ButtonDefaults.textButtonColors().contentColor,
+                            color = MaterialTheme.colorScheme.primary,
                             textDecoration = TextDecoration.None,
                           )
                       ),
@@ -224,7 +230,7 @@ fun AppDetailsHeader(
   if (!item.categories.isNullOrEmpty())
     ChipFlowRow(modifier = Modifier.padding(start = 8.dp)) {
       item.categories.forEach { categoryItem ->
-        AssistChip(
+        LiquidGlassChip(
           label = {
             Text(text = categoryItem.name, maxLines = 2, overflow = TextOverflow.Ellipsis)
           },
@@ -232,7 +238,7 @@ fun AppDetailsHeader(
             val categoryNav = AppListType.Category(categoryItem.name, categoryItem.id)
             onNav(NavigationKey.AppList(categoryNav))
           },
-          modifier = Modifier.height(chipHeight),
+          modifier = Modifier.heightIn(min = chipHeight),
         )
       }
     }
@@ -270,126 +276,12 @@ fun AppDetailsHeader(
     lifecycleOwner.lifecycle.addObserver(observer)
     onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
   }
-  // Main Buttons
-  val state = item.installState
-  val buttonLineModifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
-  AnimatedVisibility(item.mainButtonState == MainButtonState.PROGRESS) {
-    Column(modifier = buttonLineModifier) {
-      val strRes =
-        when (state) {
-          is InstallState.Waiting -> R.string.status_install_preparing
-          is InstallState.Starting -> R.string.status_install_preparing
-          is InstallState.PreApproved -> R.string.status_install_preparing
-          is InstallState.Installing -> R.string.installing
-          is InstallState.UserConfirmationNeeded -> R.string.installing
-          else -> -1 // Downloading is specially handled below
-        }
-      if (strRes >= 0) {
-        Text(
-          text = stringResource(strRes),
-          style = MaterialTheme.typography.bodyMedium,
-          color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-          overflow = TextOverflow.Ellipsis,
-          maxLines = 1,
-        )
-      } else if (state is InstallState.Downloading) {
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = SpaceBetween) {
-          val secondsPassed = ((now - state.startMillis) / 1000f).takeIf { it > 0 } ?: 1f
-          val averageSpeed = (state.downloadedBytes / secondsPassed).roundToLong()
-          val speedStr = Formatter.formatFileSize(context, averageSpeed)
-          val remainingStr =
-            Formatter.formatFileSize(context, state.totalBytes - state.downloadedBytes)
-          Text(
-            text = stringResource(R.string.status_downloading, speedStr),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            overflow = TextOverflow.StartEllipsis,
-            maxLines = 1,
-            modifier = Modifier.padding(end = 8.dp),
-          )
-          Text(
-            text = stringResource(R.string.status_downloading_remaining, remainingStr),
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
-            overflow = TextOverflow.Ellipsis,
-            maxLines = 1,
-          )
-        }
-      }
-      Row(verticalAlignment = CenterVertically) {
-        if (state is InstallState.Downloading) {
-          val animatedProgress by
-            animateFloatAsState(
-              targetValue = state.progress,
-              animationSpec = ProgressIndicatorDefaults.ProgressAnimationSpec,
-            )
-          LinearWavyProgressIndicator(
-            stopSize = 0.dp,
-            progress = { animatedProgress },
-            modifier = Modifier.weight(1f),
-          )
-        } else {
-          LinearWavyProgressIndicator(modifier = Modifier.weight(1f))
-        }
-        var cancelled by remember { mutableStateOf(false) }
-        IconButton(
-          onClick = {
-            if (!cancelled) item.actions.cancelInstall()
-            cancelled = true
-          }
-        ) {
-          AnimatedVisibility(cancelled) {
-            CircularProgressIndicator(modifier = Modifier.size(24.dp))
-          }
-          AnimatedVisibility(!cancelled) {
-            Icon(
-              imageVector = Icons.Default.Cancel,
-              contentDescription = stringResource(R.string.cancel),
-            )
-          }
-        }
-      }
-    }
-  }
-  AnimatedVisibility(
-    item.mainButtonState == MainButtonState.INSTALL ||
-      item.mainButtonState == MainButtonState.UPDATE ||
-      (item.showOpenButton &&
-        item.mainButtonState != MainButtonState.LOADING &&
-        item.mainButtonState != MainButtonState.PROGRESS)
-  ) {
-    Row(horizontalArrangement = spacedBy(8.dp, CenterHorizontally), modifier = buttonLineModifier) {
-      if (item.showOpenButton) {
-        val context = LocalContext.current
-        OutlinedButton(
-          onClick = { context.startActivitySafe(item.actions.launchIntent) },
-          modifier = Modifier.weight(1f),
-        ) {
-          Text(stringResource(R.string.menu_open))
-        }
-      }
-      if (item.mainButtonState != MainButtonState.NONE) {
-        // button is for either installing or updating
-        Button(
-          onClick = {
-            if (item.networkState.showWarningDialog) {
-              showMeteredDialog = true
-            } else {
-              require(item.suggestedVersion != null) { "suggestedVersion was null" }
-              item.actions.installAction(item.app, item.suggestedVersion, item.icon)
-            }
-          },
-          modifier = Modifier.weight(1f),
-        ) {
-          if (item.mainButtonState == MainButtonState.INSTALL) {
-            Text(stringResource(R.string.menu_install))
-          } else if (item.mainButtonState == MainButtonState.UPDATE) {
-            Text(stringResource(R.string.app__install_downloaded_update))
-          }
-        }
-      }
-    }
-  }
+  // Morphing Liquid Download, Progress, Completion & Action Control
+  LiquidDownloadControl(
+    item = item,
+    now = now,
+    onShowMeteredDialog = { showMeteredDialog = true },
+  )
   if (showMeteredDialog)
     MeteredConnectionDialog(
       numBytes = version?.size,
@@ -511,7 +403,7 @@ private fun PreviewDownloadingNight() {
 @Preview
 @Composable
 private fun PreviewProgress() {
-  FDroidContent(dynamicColors = true) {
+  FDroidContent {
     Column {
       val app =
         testApp.copy(

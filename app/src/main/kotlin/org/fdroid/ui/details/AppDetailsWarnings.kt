@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.WarningAmber
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -27,6 +25,7 @@ import org.fdroid.database.NotAvailable
 import org.fdroid.database.UpdateInOtherRepo
 import org.fdroid.index.v2.ANTI_FEATURE_KNOWN_VULNERABILITY
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassCard
 import org.fdroid.ui.utils.testApp
 
 @Composable
@@ -82,8 +81,8 @@ fun AppDetailsWarnings(item: LoadedAppDetailsItem, modifier: Modifier = Modifier
         Pair(MaterialTheme.colorScheme.inverseSurface, stringResource(R.string.app_no_auto_update))
       else -> return
     }
-  ElevatedCard(
-    colors = CardDefaults.elevatedCardColors(containerColor = color),
+  LiquidGlassCard(
+    containerColor = color.copy(alpha = 0.88f),
     modifier = modifier.fillMaxWidth().padding(vertical = 8.dp),
   ) {
     WarningRow(text = string)

@@ -8,13 +8,10 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.QrCode
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.Icon
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,6 +34,9 @@ import com.viktormykhailiv.compose.hints.rememberHintController
 import org.fdroid.R
 import org.fdroid.repo.RepoUpdateWorker
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidFloatingTopBar
+import org.fdroid.ui.glass.LiquidGlassDropdownMenuItem
+import org.fdroid.ui.glass.LiquidScaffold
 import org.fdroid.ui.utils.BackButton
 import org.fdroid.ui.utils.BigLoadingIndicator
 import org.fdroid.ui.utils.HintOverlayContainer
@@ -102,13 +102,14 @@ fun RepoDetails(
       },
       onDismiss = { showMeteredDialog = null },
     )
-  Scaffold(
+  LiquidScaffold(
     topBar = {
-      TopAppBar(
-        navigationIcon = { if (onBackNav != null) BackButton(onClick = onBackNav) },
-        title = {},
+      LiquidFloatingTopBar(
+        navigationIcon = if (onBackNav != null) { { BackButton(onClick = onBackNav) } } else null,
+        showTitlePill = false,
+        showActions = repo != null,
         actions = {
-          if (repo == null) return@TopAppBar
+          if (repo == null) return@LiquidFloatingTopBar
           TopAppBarButton(
             imageVector = Icons.Default.Share,
             contentDescription = stringResource(R.string.share_repository),
@@ -130,7 +131,7 @@ fun RepoDetails(
             },
           )
           TopAppBarOverflowButton { onDismissRequest ->
-            DropdownMenuItem(
+            LiquidGlassDropdownMenuItem(
               text = { Text(stringResource(R.string.delete)) },
               onClick = {
                 onDismissRequest()
@@ -155,7 +156,7 @@ fun RepoDetails(
       RepoDetailsContent(
         info = info,
         onShowAppsClicked = onShowAppsClicked,
-        modifier = Modifier.padding(paddingValues),
+        paddingValues = paddingValues,
       )
   }
 }

@@ -1,9 +1,6 @@
 plugins {
   alias(libs.plugins.jetbrains.kotlin.multiplatform)
   alias(libs.plugins.android.multiplatform.library)
-  alias(libs.plugins.jetbrains.dokka)
-  alias(libs.plugins.vanniktech.maven.publish)
-  alias(libs.plugins.ktfmt)
 }
 
 kotlin {
@@ -86,16 +83,5 @@ kotlin {
         implementation(libs.mockk.android)
       }
     }
-  }
-}
-
-ktfmt { googleStyle() }
-
-signing { useGpgCmd() }
-
-dokka {
-  pluginsConfiguration.html {
-    customAssets.from("${file("${rootProject.rootDir}/logo-icon.svg")}")
-    footerMessage.set("© 2010-2025 F-Droid Limited and Contributors")
   }
 }

@@ -3,6 +3,7 @@ package org.fdroid.ui.navigation
 import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Apps
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Explore
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
@@ -51,6 +52,8 @@ sealed interface NavigationKey : NavKey {
 
   @Serializable data object InstallationHistory : NavigationKey
 
+  @Serializable data object LiquidGlassCustomizer : NavigationKey
+
   // Full flavor special destinations kept here for simplicity
 
   @Serializable data object Nearby : NavigationKey
@@ -83,6 +86,13 @@ sealed class NavDestinations(
     )
 
   object About : NavDestinations(NavigationKey.About, R.string.menu_about, Icons.Filled.Info)
+
+  object LiquidGlass :
+    NavDestinations(
+      NavigationKey.LiquidGlassCustomizer,
+      R.string.liquid_glass_title,
+      Icons.Filled.AutoAwesome,
+    )
 
   // Full flavor special destinations kept here for simplicity
 

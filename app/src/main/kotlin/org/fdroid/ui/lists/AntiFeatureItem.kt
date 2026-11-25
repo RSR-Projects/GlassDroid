@@ -7,11 +7,11 @@ import androidx.compose.material.icons.filled.CrisisAlert
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter.Companion.tint
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
@@ -20,6 +20,9 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.tooling.preview.PreviewLightDark
 import androidx.compose.ui.unit.dp
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidGlassSwitch
+import org.fdroid.ui.glass.liquidRowSquish
 import org.fdroid.ui.utils.AsyncShimmerImage
 import org.fdroid.ui.utils.getAppListInfo
 import org.fdroid.ui.utils.getAppListModel
@@ -58,7 +61,7 @@ fun AntiFeatureRow(
         }
       },
     trailingContent = {
-      Switch(
+      LiquidGlassSwitch(
         checked = isChecked,
         onCheckedChange = { selected ->
           if (selected) actions.removeAntiFeature(antiFeature.id)
@@ -69,10 +72,12 @@ fun AntiFeatureRow(
     colors = ListItemDefaults.colors(containerColor = Color.Transparent),
     verticalAlignment = Alignment.CenterVertically,
     modifier =
-      Modifier.clickable {
-        if (isChecked) actions.addAntiFeature(antiFeature.id)
-        else actions.removeAntiFeature(antiFeature.id)
-      },
+      Modifier.liquidRowSquish()
+        .clip(LiquidGlassShapes.SmallCardShape)
+        .clickable {
+          if (isChecked) actions.addAntiFeature(antiFeature.id)
+          else actions.removeAntiFeature(antiFeature.id)
+        },
   ) {
     Text(antiFeature.name)
   }

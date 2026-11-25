@@ -128,6 +128,47 @@ class SettingsManagerTest {
     )
     assertFalse(prefs.contains("preferForeign"))
   }
+
+  @Test
+  fun testLiquidGlassConfigPersistenceAndReset() {
+    prefs.edit { putString(SettingsConstants.PREF_KEY_GLASS_PROFILE, "CRYSTAL") }
+    val manager = SettingsManager(context)
+    assertEquals(
+      org.fdroid.ui.glass.GlassProfile.CLEAR,
+      manager.liquidGlassConfigFlow.value.glassProfile,
+    )
+
+    val custom =
+      manager.liquidGlassConfigFlow.value.copy(
+        glassProfile = org.fdroid.ui.glass.GlassProfile.DEEP,
+        glassTint = org.fdroid.ui.glass.GlassTintPreset.OCEAN,
+        transparency = 0.34f,
+        highlightIntensity = 1.25f,
+        reducedVisualEffects = true,
+        animationsEnabled = false,
+        animationIntensity = 0.65f,
+      )
+    manager.updateLiquidGlassConfig(custom)
+
+    val reloaded = SettingsManager(context).liquidGlassConfigFlow.value
+    assertEquals(org.fdroid.ui.glass.GlassProfile.DEEP, reloaded.glassProfile)
+    assertEquals(org.fdroid.ui.glass.GlassTintPreset.OCEAN, reloaded.glassTint)
+    assertEquals(0.34f, reloaded.transparency)
+    assertEquals(1.25f, reloaded.highlightIntensity)
+    assertEquals(true, reloaded.reducedVisualEffects)
+    assertEquals(false, reloaded.animationsEnabled)
+    assertEquals(0.65f, reloaded.animationIntensity)
+
+    val resetGlass = manager.resetGlassConfig()
+    assertEquals(org.fdroid.ui.glass.GlassProfile.ADAPTIVE, resetGlass.glassProfile)
+    assertEquals(org.fdroid.ui.glass.GlassTintPreset.ADAPTIVE, resetGlass.glassTint)
+    assertFalse(resetGlass.reducedVisualEffects)
+
+    val resetMotion = manager.resetMotionConfig()
+    assertEquals(org.fdroid.ui.glass.MotionProfile.BOUNCY, resetMotion.motionProfile)
+    assertEquals(true, resetMotion.animationsEnabled)
+    assertEquals(1.00f, resetMotion.animationIntensity)
+  }
 }
 
 private class FakeSharedPreferences : SharedPreferences {

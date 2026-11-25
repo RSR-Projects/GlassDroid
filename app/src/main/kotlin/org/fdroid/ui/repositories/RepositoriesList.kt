@@ -1,6 +1,7 @@
 package org.fdroid.ui.repositories
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement.spacedBy
 import androidx.compose.foundation.layout.Column
@@ -17,26 +18,30 @@ import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.dropShadow
 import androidx.compose.ui.graphics.shadow.Shadow
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.DpOffset
 import androidx.compose.ui.unit.dp
 import org.fdroid.R
+import org.fdroid.ui.glass.LiquidGlassCard
+import org.fdroid.ui.glass.LiquidGlassDialog
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidGlassTextButton
+import org.fdroid.ui.glass.liquidRowSquish
 import org.fdroid.ui.utils.DraggableItem
 import org.fdroid.ui.utils.MeteredConnectionDialog
 import org.fdroid.ui.utils.dragContainer
@@ -88,7 +93,11 @@ fun RepositoriesList(
           )
         }
       DraggableItem(dragDropState, index) { isDragging ->
-        val elevation by animateDpAsState(if (isDragging) 4.dp else 0.dp)
+        val elevation by
+          animateDpAsState(
+            targetValue = if (isDragging) 4.dp else 0.dp,
+            animationSpec = spring(dampingRatio = 0.72f, stiffness = 420f),
+          )
         RepositoryRow(
           repoItem = repoItem,
           isSelected = isSelected,
@@ -102,43 +111,50 @@ fun RepositoriesList(
             }
           },
           modifier =
-            Modifier.fillMaxWidth().then(interactionModifier).let {
-              if (isDragging)
-                it.dropShadow(
-                  shape = RoundedCornerShape(4.dp),
-                  shadow = Shadow(radius = 8.dp, offset = DpOffset(x = elevation, elevation)),
-                )
-              else it
-            },
+            Modifier.fillMaxWidth()
+              .padding(horizontal = 8.dp)
+              .liquidRowSquish()
+              .clip(LiquidGlassShapes.SmallCardShape)
+              .then(interactionModifier)
+              .let {
+                if (isDragging)
+                  it.dropShadow(
+                    shape = RoundedCornerShape(16.dp),
+                    shadow = Shadow(radius = 8.dp, offset = DpOffset(x = elevation, elevation)),
+                  )
+                else it
+              },
         )
       }
     }
   }
   val repoId = showDisableRepoDialog
   if (repoId != null) {
-    AlertDialog(
+    LiquidGlassDialog(
       title = { Text(text = stringResource(R.string.repo_disable_dialog_title)) },
       text = {
         Column(verticalArrangement = spacedBy(8.dp)) {
-          ElevatedCard(
-            colors =
-              CardDefaults.elevatedCardColors(
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer
-              )
+          LiquidGlassCard(
+            shape = LiquidGlassShapes.SmallCardShape,
+            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.88f),
           ) {
-            Row(
-              verticalAlignment = Alignment.CenterVertically,
-              horizontalArrangement = spacedBy(8.dp),
+            CompositionLocalProvider(
+              LocalContentColor provides MaterialTheme.colorScheme.onTertiaryContainer
             ) {
-              Icon(
-                Icons.Default.Warning,
-                contentDescription = null,
-                modifier = Modifier.padding(start = 8.dp),
-              )
-              Text(
-                text = stringResource(R.string.repo_disable_dialog_warning),
-                modifier = Modifier.padding(8.dp),
-              )
+              Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = spacedBy(8.dp),
+              ) {
+                Icon(
+                  Icons.Default.Warning,
+                  contentDescription = null,
+                  modifier = Modifier.padding(start = 8.dp),
+                )
+                Text(
+                  text = stringResource(R.string.repo_disable_dialog_warning),
+                  modifier = Modifier.padding(8.dp),
+                )
+              }
             }
           }
           Text(stringResource(R.string.repo_disable_dialog_text))
@@ -146,20 +162,18 @@ fun RepositoriesList(
       },
       onDismissRequest = { showDisableRepoDialog = null },
       confirmButton = {
-        TextButton(
+        LiquidGlassTextButton(
           onClick = {
             info.onRepositoryEnabled(repoId, false)
             showDisableRepoDialog = null
-          }
+          },
+          contentColor = MaterialTheme.colorScheme.error,
         ) {
-          Text(
-            text = stringResource(R.string.repo_disable_warning_button),
-            color = MaterialTheme.colorScheme.error,
-          )
+          Text(text = stringResource(R.string.repo_disable_warning_button))
         }
       },
       dismissButton = {
-        TextButton(onClick = { showDisableRepoDialog = null }) {
+        LiquidGlassTextButton(onClick = { showDisableRepoDialog = null }) {
           Text(stringResource(android.R.string.cancel))
         }
       },

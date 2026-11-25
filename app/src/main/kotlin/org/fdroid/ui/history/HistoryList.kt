@@ -11,18 +11,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DownloadForOffline
 import androidx.compose.material.icons.filled.RemoveCircleOutline
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -33,6 +32,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.fdroid.R
 import org.fdroid.history.InstallEvent
+import org.fdroid.ui.glass.LiquidGlassBadgedBox
+import org.fdroid.ui.glass.LiquidGlassCard
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.LiquidGlassSwitch
+import org.fdroid.ui.glass.springListItem
 import org.fdroid.ui.utils.AsyncShimmerImage
 import org.fdroid.ui.utils.BadgeIcon
 import org.fdroid.ui.utils.VersionLine
@@ -47,20 +51,28 @@ fun HistoryList(
 ) {
   LazyColumn(contentPadding = paddingValues) {
     if (enabled != null)
-      item {
-        Card(
-          shape = MaterialTheme.shapes.extraLarge,
-          colors =
-            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
-          modifier = Modifier.padding(16.dp).fillMaxWidth().clickable { onEnabled(!enabled) },
+      item(key = "toggle", contentType = "toggle") {
+        LiquidGlassCard(
+          shape = LiquidGlassShapes.CardShape,
+          containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.78f),
+          squishable = true,
+          modifier =
+            Modifier.springListItem(this)
+              .padding(16.dp)
+              .fillMaxWidth()
+              .clickable { onEnabled(!enabled) },
         ) {
-          Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp)) {
-            Text(
-              text = stringResource(R.string.install_history_switch),
-              fontSize = 19.sp,
-              modifier = Modifier.weight(1f),
-            )
-            Switch(enabled, onCheckedChange = onEnabled)
+          CompositionLocalProvider(
+            LocalContentColor provides MaterialTheme.colorScheme.onPrimaryContainer
+          ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(16.dp)) {
+              Text(
+                text = stringResource(R.string.install_history_switch),
+                fontSize = 19.sp,
+                modifier = Modifier.weight(1f),
+              )
+              LiquidGlassSwitch(checked = enabled, onCheckedChange = onEnabled)
+            }
           }
         }
       }
@@ -83,7 +95,7 @@ fun HistoryList(
       ) { item ->
         ListItem(
           leadingContent = {
-            BadgedBox(
+            LiquidGlassBadgedBox(
               badge = {
                 BadgeIcon(
                   icon =
@@ -111,7 +123,10 @@ fun HistoryList(
                 model = item.iconModel,
                 error = painterResource(R.drawable.ic_repo_app_default),
                 contentDescription = null,
-                modifier = Modifier.size(48.dp).semantics { hideFromAccessibility() },
+                modifier =
+                  Modifier.size(48.dp)
+                    .clip(MaterialTheme.shapes.medium)
+                    .semantics { hideFromAccessibility() },
               )
             }
           },
@@ -123,7 +138,10 @@ fun HistoryList(
             } else Text(dateStr)
           },
           colors = ListItemDefaults.colors(containerColor = Color.Transparent),
-          modifier = if (enabled == false) Modifier.alpha(0.5f) else Modifier,
+          modifier =
+            Modifier.springListItem(this).let {
+              if (enabled == false) it.alpha(0.5f) else it
+            },
         )
       }
   }

@@ -6,7 +6,6 @@ import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.foundation.text.input.setTextAndPlaceCursorAtEnd
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSearchBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -16,17 +15,18 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import kotlinx.coroutines.FlowPreview
+import org.fdroid.ui.glass.LiquidFloatingSearchBar
 import org.fdroid.ui.utils.BackButton
 
 /**
- * This is a top app bar that isn't mean to ever expand with results, but for in-list filtering.
- * There may still be potential to factor out common code with [AppSearchInputField].
+ * Floating Liquid Glass search bar for global search and in-list filtering.
  */
 @Composable
 @OptIn(ExperimentalMaterial3Api::class, FlowPreview::class)
 fun TopSearchBar(
   searchFieldState: TextFieldState = rememberTextFieldState(),
   shouldRequestFocus: Boolean = true,
+  showActions: Boolean = false,
   actions: @Composable (RowScope.() -> Unit) = {},
   onSearch: suspend (String) -> Unit,
   onSearchCleared: () -> Unit,
@@ -34,9 +34,9 @@ fun TopSearchBar(
 ) {
   val focusRequester = remember { FocusRequester() }
   val keyboardController = LocalSoftwareKeyboardController.current
-  TopAppBar(
+  LiquidFloatingSearchBar(
     navigationIcon = { BackButton(onClick = onHideSearch) },
-    title = {
+    searchField = {
       AppSearchInputField(
         searchBarState = rememberSearchBarState(),
         textFieldState = searchFieldState,
@@ -48,6 +48,7 @@ fun TopSearchBar(
         modifier = Modifier.fillMaxWidth().focusRequester(focusRequester),
       )
     },
+    showActions = showActions,
     actions = actions,
   )
   LaunchedEffect(shouldRequestFocus) {

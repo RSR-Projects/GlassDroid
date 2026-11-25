@@ -3,6 +3,10 @@ package org.fdroid.ui.repositories
 import android.content.res.Configuration.UI_MODE_NIGHT_YES
 import android.content.res.Configuration.UI_MODE_TYPE_NORMAL
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
@@ -11,18 +15,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
-import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults.enterAlwaysScrollBehavior
-import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -30,7 +27,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,6 +40,11 @@ import com.viktormykhailiv.compose.hints.rememberHintController
 import org.fdroid.R
 import org.fdroid.download.NetworkState
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidFloatingActionButton
+import org.fdroid.ui.glass.LiquidFloatingTopBar
+import org.fdroid.ui.glass.LiquidScaffold
+import org.fdroid.ui.glass.LocalLiquidGlassConfig
+import org.fdroid.ui.utils.BackButton
 import org.fdroid.ui.utils.BigLoadingIndicator
 import org.fdroid.ui.utils.HintOverlayContainer
 import org.fdroid.ui.utils.OnboardingPopupCard
@@ -74,7 +75,6 @@ fun Repositories(info: RepositoryInfo, isBigScreen: Boolean, onBackClicked: () -
       hintController.show(hintAnchor)
     }
   }
-  val scrollBehavior = enterAlwaysScrollBehavior(rememberTopAppBarState())
   val listState = rememberLazyListState()
   val showFab by remember {
     derivedStateOf {
@@ -89,28 +89,30 @@ fun Repositories(info: RepositoryInfo, isBigScreen: Boolean, onBackClicked: () -
       }
     }
   }
-  Scaffold(
+  LiquidScaffold(
     topBar = {
-      TopAppBar(
-        navigationIcon = {
-          IconButton(onClick = onBackClicked) {
-            Icon(
-              imageVector = Icons.AutoMirrored.Default.ArrowBack,
-              contentDescription = stringResource(R.string.back),
-            )
-          }
-        },
+      LiquidFloatingTopBar(
+        navigationIcon = { BackButton(onClick = onBackClicked) },
         title = { Text(stringResource(R.string.app_details_repositories)) },
         subtitle = {
           val lastUpdated = info.model.lastCheckForUpdate
           Text(stringResource(R.string.repo_last_update_check, lastUpdated))
         },
-        scrollBehavior = scrollBehavior,
+        showActions = false,
       )
     },
     floatingActionButton = {
-      AnimatedVisibility(showFab) {
-        FloatingActionButton(onClick = info::onAddRepo, modifier = Modifier.padding(16.dp)) {
+      val glassConfig = LocalLiquidGlassConfig.current
+      AnimatedVisibility(
+        visible = showFab,
+        enter =
+          fadeIn(glassConfig.smoothSpatialSpring()) +
+            scaleIn(initialScale = 0.8f, animationSpec = glassConfig.bouncySpatialSpring()),
+        exit =
+          fadeOut(glassConfig.smoothSpatialSpring()) +
+            scaleOut(targetScale = 0.8f, animationSpec = glassConfig.smoothSpatialSpring()),
+      ) {
+        LiquidFloatingActionButton(onClick = info::onAddRepo) {
           Icon(
             imageVector = Icons.Default.Add,
             contentDescription = stringResource(R.string.menu_add_repo),
@@ -118,9 +120,7 @@ fun Repositories(info: RepositoryInfo, isBigScreen: Boolean, onBackClicked: () -
         }
       }
     },
-    modifier =
-      Modifier.hintAnchor(hintAnchor, fullScreen = true)
-        .nestedScroll(scrollBehavior.nestedScrollConnection),
+    modifier = Modifier.hintAnchor(hintAnchor, fullScreen = true),
   ) { paddingValues ->
     if (info.model.repositories == null) BigLoadingIndicator()
     else

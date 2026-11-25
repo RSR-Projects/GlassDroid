@@ -9,12 +9,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.LinearWavyProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,6 +31,10 @@ import org.fdroid.repo.FetchResult.IsNewRepoAndNewMirror
 import org.fdroid.repo.FetchResult.IsNewRepository
 import org.fdroid.repo.Fetching
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassLinearProgress
+import org.fdroid.ui.glass.LiquidGlassShapes
+import org.fdroid.ui.glass.liquidRowSquish
+import org.fdroid.ui.glass.springListItem
 import org.fdroid.ui.lists.AppListItem
 import org.fdroid.ui.lists.AppListRow
 import org.fdroid.ui.utils.FDroidButton
@@ -76,7 +80,7 @@ fun AddRepoPreviewScreen(
             )
             Text(text = state.apps.size.toString(), style = MaterialTheme.typography.bodyLarge)
             if (!state.done) {
-              LinearWavyProgressIndicator(modifier = Modifier.weight(1f))
+              LiquidGlassLinearProgress(modifier = Modifier.weight(1f))
             }
           }
         }
@@ -97,7 +101,12 @@ fun AddRepoPreviewScreen(
           AppListRow(
             item = item,
             isSelected = false,
-            modifier = Modifier.animateItem().padding(horizontal = 8.dp).fillMaxWidth(),
+            modifier =
+              Modifier.springListItem(this)
+                .padding(horizontal = 8.dp)
+                .fillMaxWidth()
+                .liquidRowSquish()
+                .clip(LiquidGlassShapes.SmallCardShape),
           )
         }
       }

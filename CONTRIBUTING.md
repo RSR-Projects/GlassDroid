@@ -1,84 +1,31 @@
-# Contributing
+# Contributing to GlassDroid Basic
 
-## Reporting issues
+Thank you for your interest in **GlassDroid Basic** (`com.rsrprojects.glassdroid`), an independent **RSR Projects** fork of **F-Droid Basic**.
 
-If you find an issue in the app, you can use our [Issue
-Tracker](https://gitlab.com/fdroid/fdroidclient/issues). Make sure that it
-hasn't yet been reported by searching (also closed tickets) first.
+## Scope of Contributions
 
-## Contributing code
+- **GlassDroid-specific UI, Liquid Glass shaders/modifiers, physics animations, customisation, and branding:** Report issues and submit pull requests directly in [RSR-Projects/GlassDroid](https://github.com/RSR-Projects/GlassDroid).
+- **Core F-Droid repository, index, or download engine (`libs/`):** Improvements that benefit the wider ecosystem are also encouraged upstream at [fdroid/fdroidclient](https://gitlab.com/fdroid/fdroidclient).
 
-> [!WARNING]  
-> Any **AI/LLM** usage is [very](https://gitlab.com/fdroid/admin/-/work_items/575)
-> [controversial](https://gitlab.com/fdroid/admin/-/work_items/699).
-> An official policy is still being worked on.
-> Until this is ready, please do not use AI/LLM for your contribution.
-> Most importantly, do not use AI/LLM for merge request text and communication with us.
+## Before Opening an Issue
 
-Before starting to work on non-trivial code changes,
-please post in the related ticket first stating your intention to work on it.
-This avoids duplicate work and allows for discussion of the best approach to take.
-If no ticket exists, create one first.
+1. Search existing open and closed issues to avoid duplicates.
+2. Include your **device model**, **Android version**, **GlassDroid Basic version**, and clear reproduction steps (plus screenshots or exported debug logs from **Settings → Export debug log** where helpful).
 
-## Translating
+## Development Setup & Code Style
 
-The strings are translated using [Weblate](https://weblate.org/en/). Follow
-[these instructions](https://hosted.weblate.org/engage/f-droid/) if you would
-like to contribute.
+- **JDK:** 17
+- **Gradle:** 9.3.1 (see `gradle/wrapper/gradle-wrapper.properties`; invoke with system `gradle` or run `gradle wrapper` locally if preferred)
+- **Kotlin style:** Official Kotlin style (`kotlin.code.style=official` in `gradle.properties`)
 
-Please *do not* send merge requests or patches modifying the translations. Use
-Weblate instead - it applies a series of fixes and suggestions, plus it keeps
-track of modifications and fuzzy translations. Applying translations manually
-skips all the fixes and checks, and overrides the fuzzy state of strings.
+Before submitting changes:
 
-Note that you cannot change the English strings on Weblate. If you have any
-suggestions on how to improve them, open an issue or merge request like you
-would if you were making code changes. This way the changes can be reviewed
-before the source strings on Weblate are changed.
+```bash
+gradle :app:testDebugUnitTest
+```
 
+## Licensing & Copyright Preservation
 
-## Code Style
-
-We follow [ktfmt](https://facebook.github.io/ktfmt/) style with Google flavor.
-
-Run `./gradlew ktfmtFormat` to auto-format your changes before committing them.
-
-
-## Running the test suite
-
-Before pushing commits to a merge request, make sure this passes:
-
-    ./gradlew check
-
-In order to run the F-Droid test suite, you will need to have either a real device
-connected via `adb`, or an emulator running. Then, execute the following from the
-command line:
-
-    ./gradlew connectedAndroidTest
-
-For a quick way to run a specific JUnit/Robolectric test:
-
-    ./gradlew testFullDebugUnitTest --tests *LocaleSelectionTest*
-
-For a quick way to run a specific emulator test:
-
-	./gradlew connectedFullDebugAndroidTest \
-        -Pandroid.testInstrumentationRunnerArguments.class=org.fdroid.fdroid.MainActivityExpressoTest
-
-## Screenshot tests
-
-F-Droid uses screenshot tests to check that everything displays correctly. If
-you've intentionally updated the UI or visible strings, you'll need to update
-the screenshots to avoid breaking the tests.
-
-Make sure you've pulled the screenshot files:
-
-    git lfs pull
-
-To update the screenshots:
-
-    ./gradlew :app:updateBasicDefaultDebugScreenshotTest
-
-## Making releases
-
-See https://gitlab.com/fdroid/wiki/-/wikis/Internal/Release-Process#fdroidclient
+- Changes under `app/` must remain compatible with **GNU GPL v3.0 or later** ([LICENSE](LICENSE)).
+- Changes under `libs/` must remain compatible with **Apache License 2.0** ([libs/LICENSE](libs/LICENSE)).
+- Preserve all existing upstream F-Droid, Android Open Source Project, Calyx Institute, and contributor copyright headers.

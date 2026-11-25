@@ -7,8 +7,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CrisisAlert
 import androidx.compose.material.icons.filled.WarningAmber
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3ExpressiveApi
 import androidx.compose.material3.ListItem
 import androidx.compose.material3.ListItemDefaults
@@ -34,6 +32,8 @@ import com.viktormykhailiv.compose.hints.rememberHint
 import com.viktormykhailiv.compose.hints.rememberHintAnchorState
 import org.fdroid.R
 import org.fdroid.ui.FDroidContent
+import org.fdroid.ui.glass.LiquidGlassCard
+import org.fdroid.ui.glass.LiquidGlassShapes
 import org.fdroid.ui.utils.AsyncShimmerImage
 import org.fdroid.ui.utils.ExpandableSection
 import org.fdroid.ui.utils.testApp
@@ -49,14 +49,13 @@ fun AntiFeatures(
 ) {
   var placed by remember { mutableStateOf(false) }
   var visible by remember { mutableStateOf(false) }
-  ElevatedCard(
-    colors =
-      CardDefaults.elevatedCardColors(containerColor = MaterialTheme.colorScheme.inverseSurface),
+  LiquidGlassCard(
+    containerColor = MaterialTheme.colorScheme.inverseSurface.copy(alpha = 0.90f),
     modifier =
       modifier
         .fillMaxWidth()
         .padding(horizontal = 8.dp)
-        .hintAnchor(state = hintAnchor, shape = CardDefaults.elevatedShape)
+        .hintAnchor(state = hintAnchor, shape = LiquidGlassShapes.CardShape)
         .onPlaced {
           if (visible && showOnboarding) {
             onShowOnboarding()

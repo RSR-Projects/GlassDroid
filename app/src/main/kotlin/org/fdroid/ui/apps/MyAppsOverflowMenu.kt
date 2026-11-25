@@ -3,7 +3,6 @@ package org.fdroid.ui.apps
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.UploadFile
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -12,6 +11,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.hideFromAccessibility
 import androidx.compose.ui.semantics.semantics
 import org.fdroid.R
+import org.fdroid.ui.glass.LiquidGlassDropdownMenuItem
 
 @Composable
 fun MyAppsOverFlowMenu(
@@ -19,7 +19,7 @@ fun MyAppsOverFlowMenu(
   onExportInstalledApps: () -> Unit,
   onDismissRequest: () -> Unit,
 ) {
-  DropdownMenuItem(
+  LiquidGlassDropdownMenuItem(
     text = { Text(stringResource(R.string.install_history)) },
     onClick = {
       onInstallHistory()
@@ -33,7 +33,7 @@ fun MyAppsOverFlowMenu(
       )
     },
   )
-  DropdownMenuItem(
+  LiquidGlassDropdownMenuItem(
     text = { Text(stringResource(R.string.my_apps_export_installed_apps)) },
     onClick = {
       onExportInstalledApps()

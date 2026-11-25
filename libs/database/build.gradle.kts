@@ -1,9 +1,6 @@
 plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.android.ksp)
-  alias(libs.plugins.jetbrains.dokka)
-  alias(libs.plugins.vanniktech.maven.publish)
-  alias(libs.plugins.ktfmt)
 }
 
 android {
@@ -103,17 +100,6 @@ dependencies {
 }
 
 ksp { arg(RoomSchemaArgProvider(File(projectDir, "schemas"))) }
-
-ktfmt { googleStyle() }
-
-signing { useGpgCmd() }
-
-dokka {
-  pluginsConfiguration.html {
-    customAssets.from("${file("${rootProject.rootDir}/logo-icon.svg")}")
-    footerMessage.set("© 2010-2025 F-Droid Limited and Contributors")
-  }
-}
 
 class RoomSchemaArgProvider(
   @get:InputDirectory @get:PathSensitive(PathSensitivity.RELATIVE) val schemaDir: File

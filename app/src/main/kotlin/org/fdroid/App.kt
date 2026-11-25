@@ -2,7 +2,6 @@ package org.fdroid
 
 import android.app.Application
 import android.content.Context
-import android.os.Build.VERSION.SDK_INT
 import androidx.compose.runtime.Composer
 import androidx.compose.runtime.tooling.ComposeStackTraceMode
 import androidx.hilt.work.HiltWorkerFactory
@@ -19,22 +18,12 @@ import coil3.util.DebugLogger
 import coil3.util.Logger
 import dagger.hilt.android.HiltAndroidApp
 import javax.inject.Inject
-import org.acra.ACRA
-import org.acra.ReportField
-import org.acra.config.dialog
-import org.acra.config.mailSender
-import org.acra.data.StringFormat.JSON
-import org.acra.ktx.initAcra
-import org.fdroid.BuildConfig.APPLICATION_ID
-import org.fdroid.BuildConfig.VERSION_NAME
 import org.fdroid.download.DownloadRequest
 import org.fdroid.download.LocalIconFetcher
 import org.fdroid.download.PackageName
 import org.fdroid.download.coil.DownloadRequestFetcher
 import org.fdroid.repo.RepoUpdateWorker
 import org.fdroid.settings.SettingsManager
-import org.fdroid.ui.crash.CrashActivity
-import org.fdroid.ui.crash.NoRetryPolicy
 import org.fdroid.ui.utils.applyNewTheme
 import org.fdroid.updates.AppUpdateWorker
 import org.fdroid.updates.SelfUpdateReceiver
@@ -55,65 +44,45 @@ class App : Application(), Configuration.Provider, SingletonImageLoader.Factory 
   override val workManagerConfiguration: Configuration
     get() = Configuration.Builder().setWorkerFactory(workerFactory).build()
 
-  override fun attachBaseContext(base: Context) {
-    super.attachBaseContext(base)
-    initAcra {
-      reportFormat = JSON
-      reportContent =
-        listOf(
-          ReportField.USER_COMMENT,
-          ReportField.PACKAGE_NAME,
-          ReportField.APP_VERSION_NAME,
-          ReportField.ANDROID_VERSION,
-          ReportField.PRODUCT,
-          ReportField.BRAND,
-          ReportField.PHONE_MODEL,
-          ReportField.DISPLAY,
-          ReportField.TOTAL_MEM_SIZE,
-          ReportField.AVAILABLE_MEM_SIZE,
-          ReportField.LOGCAT,
-          ReportField.CUSTOM_DATA,
-          ReportField.STACK_TRACE_HASH,
-          ReportField.STACK_TRACE,
-        )
-      logcatArguments = listOf("-t", "750")
-      reportSendFailureToast = getString(R.string.crash_report_error)
-      // either sending via email intent works, or it doesn't, but don't keep trying
-      retryPolicyClass = NoRetryPolicy::class.java
-      sendReportsInDevMode = true
-      dialog { reportDialogClass = CrashActivity::class.java }
-      mailSender {
-        mailTo = BuildConfig.ACRA_REPORT_EMAIL
-        subject = "$APPLICATION_ID $VERSION_NAME: Crash Report"
-        reportFileName = "ACRA-report.stacktrace.json"
-      }
-    }
-  }
-
   override fun onCreate() {
     super.onCreate()
     if (BuildConfig.DEBUG) {
       Composer.setDiagnosticStackTraceMode(ComposeStackTraceMode.SourceInformation)
     }
     applyNewTheme(settingsManager.theme)
-    // bail out here if we are the ACRA process to not initialize anything in crash process
-    if (isAcraProcess()) return
+
+    // Ensure main launcher components are enabled in case a previous icon switch disabled them
+    runCatching {
+      val pm = packageManager
+      val mainComp = android.content.ComponentName(this, MainActivity::class.java)
+      if (
+        pm.getComponentEnabledSetting(mainComp) ==
+          android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+      ) {
+        pm.setComponentEnabledSetting(
+          mainComp,
+          android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
+          android.content.pm.PackageManager.DONT_KILL_APP,
+        )
+      }
+      val aliasComp = android.content.ComponentName(this, "org.fdroid.IconActivity")
+      if (
+        pm.getComponentEnabledSetting(aliasComp) ==
+          android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+      ) {
+        pm.setComponentEnabledSetting(
+          aliasComp,
+          android.content.pm.PackageManager.COMPONENT_ENABLED_STATE_DEFAULT,
+          android.content.pm.PackageManager.DONT_KILL_APP,
+        )
+      }
+    }
 
     // don't show self-update notification unless we enable it first
     SelfUpdateReceiver.disable(this)
 
     RepoUpdateWorker.scheduleOrCancel(applicationContext, settingsManager.repoUpdates)
     AppUpdateWorker.scheduleOrCancel(applicationContext, settingsManager.autoUpdateApps)
-  }
-
-  private fun isAcraProcess(): Boolean {
-    return if (SDK_INT >= 28) {
-      val processName = getProcessName().split(':')
-      processName.size > 1 && processName[1] == "acra"
-    } else {
-      // FIXME this does disk I/O
-      ACRA.isACRASenderServiceProcess()
-    }
   }
 
   override fun newImageLoader(context: Context): ImageLoader {
