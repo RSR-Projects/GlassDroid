@@ -1,0 +1,14 @@
+GlassDroid Basic is an independent fork of F-Droid Basic developed by RSR Projects, pairing F-Droid's libre Android app catalogue and repository verification with an optical Liquid Glass interface powered by Kyant0 AndroidLiquidGlass.
+
+What GlassDroid Basic adds on top of F-Droid Basic:
+* Optical Liquid Glass surfaces with backdrop blur, corner lens refraction, chromatic dispersion, specular highlights, and adaptive tinting.
+* Kyant0 dual-backdrop hold-and-swipe bottom navigation dock (Discover, Search, My Apps) and adaptive NavigationRail for larger screens.
+* Elastic squish physics, liquid touch ripples, staggered card entrances, icon pop animations, scroll parallax depth, and refractive app-opening transitions.
+* Built-in Glass & Motion Customizer (Adaptive, Clear, Frosted, Deep, and Custom glass presets; tint swatches; transparency, highlight intensity, Reduced Visual Effects mode; Enable/Disable animations, animation intensity, and 3 motion profiles).
+
+Core F-Droid Basic capabilities preserved:
+* Browse and search F-Droid compatible repositories using verified index signatures and APK hashes.
+* Track installed apps, manage updates, and support SessionInstaller unattended updates (Android 7.0+ / API 24–36).
+* Manage repositories via URL or QR code scan, configure network mirrors, HTTP/SOCKS proxies, DNS caching, theme modes, and screenshot protection.
+
+Note: Like upstream F-Droid Basic, this edition excludes Nearby Share and panic-button features.
