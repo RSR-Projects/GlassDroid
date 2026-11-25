@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="logo.png" width="132" alt="GlassDroid Basic Logo" />
+<img src="./Fastlane/metadata/android/en-US/images/logo.png" width="132" alt="GlassDroid Basic Logo" />
 
 # GlassDroid Basic
 
@@ -46,48 +46,47 @@ It pairs F-Droid's repository verification, app discovery, and unattended `Sessi
 
 ## Screenshots
 
-> Screenshot assets (`1.png`–`9.png`) are pending device capture and should be placed in [`fastlane/metadata/android/en-US/images/phoneScreenshots/`](fastlane/metadata/android/en-US/images/phoneScreenshots). Layout dimensions preserve original portrait aspect ratios without stretching.
 
 <table>
   <tr>
     <td align="center" width="33%">
-      <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="210" alt="Discover Feed" /><br />
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/1.png" width="210" alt="Discover Feed" /><br />
       <sub><strong>1. Discover Feed</strong><br />Floating glass bar &amp; staggered cards</sub>
     </td>
     <td align="center" width="33%">
-      <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="210" alt="Hold-and-Swipe Dock" /><br />
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/2.png" width="210" alt="Hold-and-Swipe Dock" /><br />
       <sub><strong>2. Jelly Bottom Dock</strong><br />Hold-and-swipe refractive droplet</sub>
     </td>
     <td align="center" width="33%">
-      <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="210" alt="Global Search" /><br />
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/3.png" width="210" alt="Global Search" /><br />
       <sub><strong>3. Global Search</strong><br />Live filtering &amp; search history</sub>
     </td>
   </tr>
   <tr>
     <td align="center" width="33%">
-      <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="210" alt="App Details" /><br />
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/4.png" width="210" alt="App Details" /><br />
       <sub><strong>4. App Details</strong><br />Parallax banner &amp; download control</sub>
     </td>
     <td align="center" width="33%">
-      <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="210" alt="My Apps and Updates" /><br />
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/5.png" width="210" alt="My Apps and Updates" /><br />
       <sub><strong>5. My Apps &amp; Updates</strong><br />Installed apps &amp; update status</sub>
     </td>
     <td align="center" width="33%">
-      <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="210" alt="Glass Customizer" /><br />
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/6.png" width="210" alt="Glass Customizer" /><br />
       <sub><strong>6. Glass Customizer</strong><br />Presets, tint swatches &amp; live pill</sub>
     </td>
   </tr>
   <tr>
     <td align="center" width="33%">
-      <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/7.png" width="210" alt="Motion Customizer" /><br />
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/7.png" width="210" alt="Motion Customizer" /><br />
       <sub><strong>7. Motion Customizer</strong><br />Spring profiles, squish &amp; intensity</sub>
     </td>
     <td align="center" width="33%">
-      <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/8.png" width="210" alt="Repositories and Settings" /><br />
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/8.png" width="210" alt="Repositories and Settings" /><br />
       <sub><strong>8. Repositories &amp; Settings</strong><br />QR repo manager &amp; glass dialogs</sub>
     </td>
     <td align="center" width="33%">
-      <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/9.png" width="210" alt="About GlassDroid Basic" /><br />
+      <img src="./fastlane/metadata/android/en-US/images/phoneScreenshots/9.png" width="210" alt="About GlassDroid Basic" /><br />
       <sub><strong>9. About Screen</strong><br />RSR Projects branding &amp; licences</sub>
     </td>
   </tr>
@@ -107,9 +106,9 @@ Open **Settings → Liquid Glass** to configure visual rendering and physics in 
 
 ## Installation
 
-> Signed public release APKs will be published under **[GitHub Releases](https://github.com/RSR-Projects/GlassDroid/releases)** once the first tagged release is available.
+> Signed public release APK is published under **[GitHub Releases](https://github.com/RSR-Projects/GlassDroid/releases)** 
 
-1. Download the signed `GlassDroid-Basic-*.apk` asset from an official GitHub Release when published.
+1. Download the signed `app-release-*.apk` asset from the official GitHub Release.
 2. Open the APK on your Android device (Android 7.0 / API 24 or newer) and allow **Install unknown apps** for your browser or file manager if prompted.
 3. Verify repository fingerprints inside **Repositories** if adding third-party F-Droid mirrors.
 
