@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="./Fastlane/metadata/android/en-US/images/logo.png" width="132" alt="GlassDroid Basic Logo" />
+<img src="./fastlane/metadata/android/en-US/images/logo.png" width="132" alt="GlassDroid Basic Logo" />
 
 # GlassDroid Basic
 
